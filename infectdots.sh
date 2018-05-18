@@ -112,3 +112,6 @@ if [ ! -e $HOME/.ssh/authorized_keys ]; then
   umask_mine touch "$HOME/.ssh/authorized_keys"
 fi
 
+# Make backup and swp folders
+mkdir ~/.vim/.backup
+mkdir ~/.vim/.swp
