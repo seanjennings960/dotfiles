@@ -106,4 +106,4 @@ fi
 # source "/home/$USER/.oh-my-zsh/custom/themes/spaceship.zsh-theme"
 
 # Autosuggestions highlighting
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=6'
+source /opt/ros/kinetic/setup.zsh

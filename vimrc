@@ -89,8 +89,9 @@ nnoremap ? :let @/ = ""<CR>:call gruvbox#hls_show()<CR>?
 
 " Custom Colors - ------------------------------------------------------------|
 " Add a ruler after 80 characters
-set colorcolumn=81
-highlight ColorColumn ctermbg=0 guibg=white
+highlight ColorColumn ctermbg=magenta guibg=Magenta
+call matchadd('ColorColumn', '\%81v', 100)
+
 
 " You Complete Me ------------------------------------------------------------|
 "   Stop making mistakes and hit Tab!
