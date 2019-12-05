@@ -113,5 +113,5 @@ install_dot "zshrc"
 # fi
 
 # Make backup and swp folders
-# mkdir ~/.vim/.backup
-# mkdir ~/.vim/.swp
+mkdir ~/.vim/.backup
+mkdir ~/.vim/.swp
