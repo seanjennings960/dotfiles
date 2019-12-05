@@ -89,29 +89,29 @@ git submodule update
 
 # Vroom vroom!
 # install_dot "gitconfig"
-install_dot "screenrc"
-install_dot "tmux.conf"
+# install_dot "screenrc"
+# install_dot "tmux.conf"
 install_dot "vim"
 install_dot "vimrc"
 install_dot "oh-my-zsh"
 install_dot "zshrc"
-install_dot "pylintrc"
+# install_dot "pylintrc"
 # intently removed bashrc to protect work files
 
 # The SSH folder most likely already exists, and in any event we don't want to
 # manage it ourselves. If we are creating it for the first time, however, we
 # should lock down the permissions
-if [ ! -e "$HOME/.ssh" ]; then
-  umask_mine mkdir "$HOME/.ssh"
-fi
-
-install_dot "ssh/rc"
-
-# Add some authorized keys
-if [ ! -e $HOME/.ssh/authorized_keys ]; then
-  umask_mine touch "$HOME/.ssh/authorized_keys"
-fi
+# if [ ! -e "$HOME/.ssh" ]; then
+#   umask_mine mkdir "$HOME/.ssh"
+# fi
+# 
+# install_dot "ssh/rc"
+# 
+# # Add some authorized keys
+# if [ ! -e $HOME/.ssh/authorized_keys ]; then
+#   umask_mine touch "$HOME/.ssh/authorized_keys"
+# fi
 
 # Make backup and swp folders
-mkdir ~/.vim/.backup
-mkdir ~/.vim/.swp
+# mkdir ~/.vim/.backup
+# mkdir ~/.vim/.swp
