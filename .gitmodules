@@ -31,6 +31,6 @@
 [submodule "vim/bundle/airline-themes"]
 	path = vim/bundle/airline-themes
 	url = https://github.com/vim-airline/vim-airline-themes.git
-[submodule "vim/bundle/monokai"]
-	path = vim/bundle/monokai
-	url = git@github.com:crusoexia/vim-monokai.git
+[submodule "vim/bundle/rust"]
+	path = vim/bundle/rust
+	url = https://github.com/rust-lang/rust.vim.git
