@@ -89,12 +89,12 @@ git submodule update
 
 # Vroom vroom!
 # install_dot "gitconfig"
-install_dot "screenrc"
+# install_dot "screenrc"
 install_dot "tmux.conf"
 install_dot "vim"
 install_dot "vimrc"
-install_dot "oh-my-zsh"
-install_dot "zshrc"
+# install_dot "oh-my-zsh"
+# install_dot "zshrc"
 # intently removed bashrc to protect work files
 
 # The SSH folder most likely already exists, and in any event we don't want to
