@@ -121,3 +121,7 @@ set t_Co=256
 " Airline & Airline-Theme ----------------------------------------------------|
 let g:airline_powerline_fonts = 1 "Let powerline fonts map to airline dict
 
+let g:ale_linters = {
+            \    'python': ['flake8']
+            \}
+

@@ -90,11 +90,11 @@ git submodule update
 # Vroom vroom!
 # install_dot "gitconfig"
 # install_dot "screenrc"
-# install_dot "tmux.conf"
+install_dot "tmux.conf"
 install_dot "vim"
 install_dot "vimrc"
-install_dot "oh-my-zsh"
-install_dot "zshrc"
+#install_dot "oh-my-zsh"
+#install_dot "zshrc"
 # install_dot "pylintrc"
 # intently removed bashrc to protect work files
 
