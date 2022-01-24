@@ -127,4 +127,9 @@ let g:ale_linters = {
 
 
 " Autocmd: set tabs based on file type
+" NOTE: filetype does not always correspond exactly to file suffix.
+" Use `:set ft?` to read filetype.
+" TODO: Where does filetype get converted?
+" TODO: Is it better practice to use an ftdetect directory?
 autocmd FileType yaml setlocal shiftwidth=2 tabstop=2 softtabstop=2
+autocmd FileType markdown setlocal shiftwidth=2 tabstop=2 softtabstop=2
