@@ -1,6 +1,6 @@
 " .Vimrc
-" Maintainer:Rahul Rawat
-" Email: mail@rahulrawat.net
+" Maintainer : Sean Jennings
+" Email : sean.jennings1@gmail.com
 "
 " To start vim without using this .vimrc file, use:
 "     vim -u NORC
@@ -95,7 +95,7 @@ call matchadd('ColorColumn', '\%81v', 100)
 
 " You Complete Me ------------------------------------------------------------|
 "   Stop making mistakes and hit Tab!
-imap <Tab> <C-P>
+" imap <Tab> <C-P>
 let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
 
@@ -125,3 +125,6 @@ let g:ale_linters = {
             \    'python': ['flake8']
             \}
 
+
+" Autocmd: set tabs based on file type
+autocmd FileType yaml setlocal shiftwidth=2 tabstop=2 softtabstop=2
