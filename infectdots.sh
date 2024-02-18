@@ -93,6 +93,7 @@ git submodule update
 install_dot "tmux.conf"
 install_dot "vim"
 install_dot "vimrc"
+install_dot "bash_aliases"
 #install_dot "oh-my-zsh"
 #install_dot "zshrc"
 # install_dot "pylintrc"
