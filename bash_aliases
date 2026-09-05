@@ -45,3 +45,11 @@ else
     cd "$(pwd)"
 fi
 tmux set-environment -r NEWW
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+path=('/Users/sean/.juliaup/bin' $path)
+export PATH
+
+# <<< juliaup initialize <<<
