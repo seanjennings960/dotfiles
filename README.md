@@ -22,6 +22,26 @@ This install script does the following things:
 * Link .* (dotfiles) on your computer to this directory
 * Initialize and update git submodules for pathogen plugins
 
+### OpenCode
+
+The installer links `opencode/` to `~/.config/opencode`, making its config,
+agents, commands, plugins, and skills available to every OpenCode session.
+OpenCode writes JavaScript dependency state into this directory at startup;
+`package.json`, lockfiles, and `node_modules/` are generated and intentionally
+ignored by Git.
+
+Install and authenticate the GitHub CLI before using the global GitHub pull
+request skill:
+
+```bash
+gh auth login
+gh auth status
+```
+
+OpenCode stores its executable under `~/.opencode` and credentials and session
+state outside `~/.config/opencode`. Those locations are not managed by this
+repository. Restart OpenCode after changing global config or skills.
+
 To install xclip (allows your tmux buffer to sync with the system buffer):
 ```bash
 sudo apt-get install --assume-yes xclip
