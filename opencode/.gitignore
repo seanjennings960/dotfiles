@@ -1,0 +1,8 @@
+# OpenCode generates these dependencies and updates @opencode-ai/plugin to
+# match its installed version. Keep machine-local installs and lockfile churn
+# out of dotfiles; OpenCode can regenerate them on startup.
+node_modules/
+package.json
+package-lock.json
+bun.lock
+bun.lockb
