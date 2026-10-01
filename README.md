@@ -13,16 +13,119 @@ To use the dotfiles:
 ```bash
 cd
 git clone https://github.com/rahulraw/dotfiles.git
-cd dotfiles 
+cd dotfiles
+git submodule update --init --recursive --checkout
 ./infectdots.sh
-submodule update --init --recursive
 ```
 
 This install script does the following things: 
 * Link .* (dotfiles) on your computer to this directory
 * Initialize and update git submodules for pathogen plugins
 
-### OpenCode
+## Managing Git submodules
+
+Run these commands from the repository root. The parent repository records an
+exact commit for each submodule; `.gitmodules` lists their paths and clone URLs.
+For a reproducible setup, check out those recorded commits rather than pulling
+the latest version inside each plugin.
+
+### Initialize or restore the recorded versions
+
+After cloning, pulling changes to the parent repository, or switching branches:
+
+```bash
+git submodule sync --recursive
+git submodule update --init --recursive --checkout
+git submodule status --recursive
+git status
+```
+
+* `sync` refreshes local submodule URLs from `.gitmodules`. Existing clones need
+  this to pick up URL changes, including the switch from `git://` to HTTPS.
+* `--init` initializes missing submodules, and `--recursive` includes nested ones.
+* `--checkout` checks out the commit recorded in the parent's index, overriding
+  any locally configured merge/rebase update strategy. Detached HEADs inside
+  submodules are normal for this workflow.
+
+In `git submodule status`, a leading space means the checkout matches the index,
+`-` means uninitialized, and `+` means a different commit is checked out. `U`
+means there is a submodule merge conflict to resolve.
+
+### Why status says `(new commits)`
+
+This means the submodule's HEAD differs from the commit recorded by the parent.
+It can be an older commit or a different history, not necessarily a newer one.
+Running `git pull` inside a plugin, using `submodule update --remote`, or an
+automatic updater can cause this. Fetching alone does not change the checkout.
+
+Inspect the difference before choosing whether to restore it or keep it:
+
+```bash
+git diff --submodule=log
+git diff --cached --submodule=log
+git submodule foreach --recursive 'git status --short'
+```
+
+To discard an unintended version change, run the restore workflow above.
+If you already staged that plugin with `git add`, first unstage its pointer
+(replace the example path with the affected submodule):
+
+```bash
+git restore --staged vim/bundle/airline
+```
+
+An update uses the **index**, so it will otherwise keep the staged version
+instead of restoring the commit in the parent's HEAD. If you made local commits
+inside a submodule that you want to preserve, create a branch there before
+restoring, for example `git -C vim/bundle/airline branch backup/before-update`.
+
+### When an update fails or status is still dirty
+
+If Git says local changes would be overwritten, inspect and save changes
+**inside the affected submodule** before retrying:
+
+```bash
+git -C vim/bundle/airline status
+git -C vim/bundle/airline stash push -u -m "before submodule update"
+# Retry the restore workflow above.
+```
+
+The parent's stash does not save edits inside submodules. Restore the saved
+edits when needed with `git -C vim/bundle/airline stash pop`; doing so makes that
+submodule dirty again and may require resolving conflicts at the new version.
+Avoid `--force` when you want to preserve local edits.
+
+Submodule updates do not remove modified or untracked files. Check both parent
+and submodule status: an untracked plugin directory such as
+`vim/bundle/typst.vim/` is not managed by this repository's recorded submodules,
+so updating them cannot make that entry disappear. Keep it outside the checkout
+or deliberately add it as a submodule if it should be shared.
+
+For network failures, run `git submodule sync --recursive` and check the URL
+named in the error. If Git reports that a recorded commit is unavailable,
+confirm the remote URL and that the commit still exists upstream; switching to
+`--remote` selects a different version rather than repairing the missing pin.
+
+### Intentionally upgrade a plugin
+
+Use `--remote` only when you want to change the version recorded by this
+repository. For example:
+
+```bash
+git submodule update --init --remote --checkout zsh/plugins/zsh-autosuggestions
+git diff --submodule=log -- zsh/plugins/zsh-autosuggestions
+# Try the updated plugin, then record its new commit in the parent repository.
+git add zsh/plugins/zsh-autosuggestions
+git diff --cached --submodule=log -- zsh/plugins/zsh-autosuggestions
+git commit -m "Update zsh-autosuggestions submodule"
+```
+
+`--remote` follows the configured submodule branch, or the remote's default
+branch if none is configured. Until the parent records the new pointer, status
+will show a change. For your own plugin commits, push them to an accessible
+submodule remote before sharing the parent commit so others can fetch them.
+
+## OpenCode
 
 The installer links `opencode/` to `~/.config/opencode`, making its config,
 agents, commands, plugins, and skills available to every OpenCode session.
