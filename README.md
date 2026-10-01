@@ -30,14 +30,6 @@ OpenCode writes JavaScript dependency state into this directory at startup;
 `package.json`, lockfiles, and `node_modules/` are generated and intentionally
 ignored by Git.
 
-Install and authenticate the GitHub CLI before using the global GitHub pull
-request skill:
-
-```bash
-gh auth login
-gh auth status
-```
-
 OpenCode stores its executable under `~/.opencode` and credentials and session
 state outside `~/.config/opencode`. Those locations are not managed by this
 repository. Restart OpenCode after changing global config or skills.
