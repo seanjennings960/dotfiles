@@ -33,6 +33,35 @@ cd ~/.vim/bundle/YouCompleteMe
 ./install.py --all
 ```
 
+## Development container
+
+The devcontainer provides Ubuntu 24.04 with Git, Vim, tmux, Zsh, and ShellCheck.
+It uses the non-root `vscode` user with sudo access and Bash as the default
+VS Code terminal. Dotfile activation is manual, so you can choose which
+configurations to try inside the container.
+
+1. Install and start Docker (Docker Desktop on macOS or Windows).
+2. Install VS Code and the **Dev Containers** extension
+   (`ms-vscode-remote.remote-containers`).
+3. Open this repository in VS Code, then run **Dev Containers: Reopen in
+   Container** from the command palette. The first launch builds the image.
+
+Alternatively, with the Dev Containers CLI installed, run from the repository
+root:
+
+```bash
+devcontainer up --workspace-folder .
+devcontainer exec --workspace-folder . bash
+```
+
+The repository is mounted into the container, so workspace edits persist on the
+host. Changes elsewhere in the container, including manually installed packages
+and home-directory configuration, can be lost when it is rebuilt.
+
+To add persistent system tools, edit `.devcontainer/Dockerfile`. After changing
+the Dockerfile or `.devcontainer/devcontainer.json`, run **Dev Containers:
+Rebuild Container** from the VS Code command palette.
+
 ### Known Issues
 
 * Powerline does not always work as intended. Look through the Powerline installation
