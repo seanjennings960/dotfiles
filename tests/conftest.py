@@ -1,6 +1,8 @@
 """Isolated application fixtures shared by milestone integration tests."""
 
 import io
+import os
+import signal
 import subprocess
 import tempfile
 from pathlib import Path
@@ -49,11 +51,30 @@ def run(env, workspace):
     def execute(args, *, check=True, **kwargs):
         kwargs.setdefault("env", env)
         kwargs.setdefault("cwd", workspace)
-        kwargs.setdefault("timeout", 20)
-        return subprocess.run(
-            [str(arg) for arg in args], check=check, text=True,
-            capture_output=True, **kwargs
-        )
+        timeout = kwargs.pop("timeout", 20)
+        input_text = kwargs.pop("input", None)
+        command = [str(arg) for arg in args]
+        with subprocess.Popen(
+            command, text=True, start_new_session=True,
+            stdin=subprocess.PIPE if input_text is not None else subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+        ) as process:
+            try:
+                stdout, stderr = process.communicate(input=input_text, timeout=timeout)
+            except subprocess.TimeoutExpired as error:
+                # A language server can outlive its editor and keep captured
+                # pipes open. Kill the test command's entire private group.
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                stdout, stderr = process.communicate(timeout=5)
+                error.output, error.stderr = stdout, stderr
+                raise
+        result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+        if check:
+            result.check_returncode()
+        return result
     return execute
 
 

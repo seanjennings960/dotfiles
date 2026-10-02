@@ -3,8 +3,11 @@
 import json
 import os
 import platform
+import subprocess
+import time
 
 import pexpect
+import pytest
 
 
 def test_baseline_toolchain(run):
@@ -39,6 +42,19 @@ def test_isolated_shell_input(terminal, env):
     child.expect_exact(f"HOME={env['HOME']}\r\n")
     child.sendline("exit")
     child.expect(pexpect.EOF)
+
+
+def test_timeout_cleans_up_descendants_holding_output(run):
+    script = (
+        "import subprocess, sys; "
+        "subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)']); "
+        "print('spawned', flush=True)"
+    )
+    started = time.monotonic()
+    with pytest.raises(subprocess.TimeoutExpired) as error:
+        run(["python3", "-c", script], timeout=0.5)
+    assert "spawned" in error.value.output
+    assert time.monotonic() - started < 5
 
 
 def test_isolated_tmux_server(tmux_server):

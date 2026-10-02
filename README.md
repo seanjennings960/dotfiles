@@ -1,30 +1,32 @@
-# Rahul Rawat's Dotfiles
+# Dotfiles
 
-A collection of the dotfiles used on my work and home Linux machines.
+A terminal-first workflow built around Bash, tmux, Neovim, and OpenCode. The
+initial tested platform is Ubuntu 24.04 ARM64, with Ghostty on the Mac host.
 
 See the [roadmap](docs/project.md) for the planned terminal-first environment,
 Dev Container Feature, and host-side `dev` launcher, and the
 [architecture](docs/architecture.md) for how they fit together.
 
-Prerequisites:
-```
-sudo apt-get install tmux
-sudo apt-get install vim
-sudo apt-get isntall zsh
-```
+Use the development container below for the supplied toolchain. Activation is
+offline and runs as the development user; it requires Bash and Python 3.9+.
 
 To use the dotfiles:
 ```bash
-cd
-git clone https://github.com/rahulraw/dotfiles.git
+git clone https://github.com/seanjennings960/dotfiles.git
 cd dotfiles
+git submodule sync --recursive
 git submodule update --init --recursive --checkout
-./infectdots.sh
+./install.sh
 ```
 
-This install script does the following things: 
-* Link .* (dotfiles) on your computer to this directory
-* Initialize and update git submodules for pathogen plugins
+Activation links the managed application configuration, installs the tmux helper
+in `~/bin`, and adds one source block to Bash/Zsh startup files. Repeated runs
+are safe. Personal shell content is preserved; conflicting editor/tmux links are
+reported with a nonzero exit status. Plugin preparation is separate from
+activation. `infectdots.sh` delegates to the same installer.
+
+See [activation details](docs/activation.md) for XDG overrides, conflict handling,
+and the user-owned configuration/state layout.
 
 ## Managing Git submodules
 
@@ -131,27 +133,15 @@ submodule remote before sharing the parent commit so others can fetch them.
 
 ## OpenCode
 
-The installer links `opencode/` to `~/.config/opencode`, making its config,
-agents, commands, plugins, and skills available to every OpenCode session.
-OpenCode writes JavaScript dependency state into this directory at startup;
-`package.json`, lockfiles, and `node_modules/` are generated and intentionally
-ignored by Git.
+Activation creates a user-owned `~/.config/opencode` directory and links the
+versioned `opencode.jsonc` and skills into it. OpenCode can generate package
+manifests, lockfiles, and `node_modules/` there without writing into the checkout.
+An existing unmanaged configuration is preserved and reported as a conflict.
 
 The devcontainer installs a pinned OpenCode executable at
 `/usr/local/bin/opencode`. Credentials and session state belong to the development
 user and are created at runtime, outside `~/.config/opencode`. Restart OpenCode
 after changing global config or skills.
-
-To install xclip (allows your tmux buffer to sync with the system buffer):
-```bash
-sudo apt-get install --assume-yes xclip
-```
-
-To install YouCompleteMe:
-```bash
-cd ~/.vim/bundle/YouCompleteMe
-./install.py --all
-```
 
 ## Development container
 
@@ -208,34 +198,20 @@ environment and set `TEST_PYTHON` to its Python executable.
 
 Tests use temporary homes, XDG directories, and workspaces, private tmux sockets,
 and simulated terminal input. Failed terminal tests include transcripts in pytest
-output. At this first step, the suite verifies the harness and installed tools;
-activation, shell, tmux, editor, and project-override regressions are added in their
-respective steps. Syntax checks cover existing scripts; ShellCheck initially
-covers the new provisioning script while legacy scripts are consolidated.
+output. Each workflow step supplies its behavioral tests and lint checks; the
+combined suite covers activation, shells, tmux, Neovim, and Python selections.
+The devcontainer's init process reaps application subprocesses; for direct Docker
+test runs, use `docker run --init`.
 
-### Known Issues
+## Workflow guides
 
-* Powerline does not always work as intended. Look through the Powerline installation
-guide on github
+- [Activation](docs/activation.md): startup blocks, conflicts, writable state.
+- [Shells](docs/shells.md): completion, local settings, Bash/Zsh comparison.
+- [tmux](docs/tmux.md): shortcuts, logical directories, terminal clipboard.
+- [Neovim](docs/neovim.md): editing defaults, mappings, EditorConfig, undo state.
+- [Python](docs/python.md): Ruff, Pyright, project overrides, tooling inspection.
+- [Plugin trials](docs/neovim-plugins.md): learn and evaluate one plugin at a time.
 
-* Powerline will show weird icons by default in the powerline bar. Set the powerline 
-mapping to 0 to fix this.
-
-* If there is errors involving a "vim error" due to comments in the vimrc, restarting
-your computer can fix the problems. Thanks Linus! 
-
-### Future Improvements
-* Transition to Vundle from Pathogen  
-Pathogen way to version control utilized git submodules. Vundle requires 
-plugin calls in your vimrc files which is a little more elegant.
-
-* Transition to Antigen from Oh-my-zsh   
-Antigen is built with inspiration of oh-my-zsh and pathogen. However, it 
-is tries to avoid the bloat of oh-my-zsh using Vundle inspired plugin calls.
-
-* Fix autosuggestions bug
-
-* ALE not working in new setups
-
-* Uses Powerline by default
-Find way to set powerline setting if available
+Bash remains the default while Zsh is evaluated. Clipboard copying uses OSC52
+through the attached terminal; verify delivery to the Mac clipboard and paste
+back through Ghostty using the manual checklist in the milestone plan.
