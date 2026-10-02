@@ -137,9 +137,10 @@ OpenCode writes JavaScript dependency state into this directory at startup;
 `package.json`, lockfiles, and `node_modules/` are generated and intentionally
 ignored by Git.
 
-OpenCode stores its executable under `~/.opencode` and credentials and session
-state outside `~/.config/opencode`. Those locations are not managed by this
-repository. Restart OpenCode after changing global config or skills.
+The devcontainer installs a pinned OpenCode executable at
+`/usr/local/bin/opencode`. Credentials and session state belong to the development
+user and are created at runtime, outside `~/.config/opencode`. Restart OpenCode
+after changing global config or skills.
 
 To install xclip (allows your tmux buffer to sync with the system buffer):
 ```bash
@@ -154,7 +155,12 @@ cd ~/.vim/bundle/YouCompleteMe
 
 ## Development container
 
-The devcontainer provides Ubuntu 24.04 with Git, Vim, tmux, Zsh, and ShellCheck.
+The devcontainer provides Ubuntu 24.04 with Git, Vim, Bash completion, tmux, Zsh,
+ShellCheck, Python 3.12, Neovim 0.12.5, Ruff 0.16.10, Pyright 1.1.414, and
+OpenCode 1.18.34. Pyright uses its own Node 22.20.0 runtime, independent of a
+project's Node selection. Release archives have recorded SHA-256 checksums;
+Pyright's npm dependency graph and Python test dependencies are locked. The base
+image is digest-pinned; Ubuntu package updates are resolved at build time.
 It uses the non-root `vscode` user with sudo access and Bash as the default
 VS Code terminal. Dotfile activation is manual, so you can choose which
 configurations to try inside the container.
@@ -180,6 +186,32 @@ and home-directory configuration, can be lost when it is rebuilt.
 To add persistent system tools, edit `.devcontainer/Dockerfile`. After changing
 the Dockerfile or `.devcontainer/devcontainer.json`, run **Dev Containers:
 Rebuild Container** from the VS Code command palette.
+
+## Tests and milestone 1
+
+The [milestone execution plan](docs/milestone-1.md) separates automated terminal
+checks from manual Ghostty, host clipboard, and workflow evaluations.
+
+From the repository root:
+
+```bash
+devcontainer up --workspace-folder .
+devcontainer exec --workspace-folder . make test
+```
+
+The tested CLI version is `@devcontainers/cli` 0.80.1. The baseline is Linux ARM64;
+report x86-64 or emulated runs separately. Run tests as the non-root development
+user. The image installs the locked test dependencies into
+`/opt/dotfiles/test-venv`; `make test` uses that interpreter. For another compatible
+Linux environment, install `requirements-dev.lock` into a dedicated virtual
+environment and set `TEST_PYTHON` to its Python executable.
+
+Tests use temporary homes, XDG directories, and workspaces, private tmux sockets,
+and simulated terminal input. Failed terminal tests include transcripts in pytest
+output. At this first step, the suite verifies the harness and installed tools;
+activation, shell, tmux, editor, and project-override regressions are added in their
+respective steps. Syntax checks cover existing scripts; ShellCheck initially
+covers the new provisioning script while legacy scripts are consolidated.
 
 ### Known Issues
 

@@ -25,6 +25,9 @@ testing. The [architecture](architecture.md) describes how the pieces fit togeth
 
 ### 1. Make the existing workflow reliable
 
+The [execution plan](milestone-1.md) breaks this milestone into reviewable steps
+and distinguishes automated terminal checks from manual workflow evaluation.
+
 - Consolidate Vim settings into a working Neovim setup. Keep plugins that
   support capabilities I use and remove obsolete configuration.
 - Start with Bash; try Zsh before choosing the supported shell. Verify path and
@@ -34,6 +37,8 @@ testing. The [architecture](architecture.md) describes how the pieces fit togeth
 - Supply Python, Ruff, and Pyright with their execution dependencies. Check
   editing, linting, formatting, and type checking both with defaults and with a
   project's own Python environment and rules.
+- Install a pinned OpenCode release and verify that the development user can
+  launch it with writable configuration and state directories.
 - Add this repository's development dependencies and a documented test command.
   Use isolated homes and workspaces for integration tests, including simulated
   shell/editor input. Update the README to match the working setup.
