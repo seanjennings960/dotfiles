@@ -2,6 +2,9 @@
 
 A collection of the dotfiles used on my work and home Linux machines.
 
+See the [roadmap](docs/project.md) for the planned terminal-first environment,
+Dev Container Feature, and host-side `dev` launcher.
+
 Prerequisites:
 ```
 sudo apt-get install tmux
