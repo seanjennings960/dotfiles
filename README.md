@@ -19,6 +19,9 @@ git submodule update --init --recursive --checkout
 ./install.sh
 ```
 
+Start a fresh shell (`exec bash`) to load the startup configuration before
+starting tmux.
+
 Activation links the managed application configuration, installs the tmux helper
 in `~/bin`, and adds one source block to Bash/Zsh startup files. Repeated runs
 are safe. Personal shell content is preserved; conflicting editor/tmux links are

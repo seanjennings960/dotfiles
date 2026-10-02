@@ -5,6 +5,9 @@ standard `ln` are required; the milestone image supplies them. `./infectdots.sh`
 is a compatibility entry point for the same operation. Activation is offline:
 it does not provision tools, fetch plugins, or initialize/update submodules.
 
+Start a fresh shell (`exec bash`) after activation so its managed paths and
+settings are loaded before starting tmux.
+
 `HOME` must be an existing writable absolute directory. Activation respects
 absolute `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, and `XDG_CACHE_HOME`
 overrides; unset/empty values use their standard home-relative defaults.
