@@ -16,23 +16,10 @@ Ubuntu 24.04 devcontainer. The Neovim setup needs consolidation. The Feature and
 
 ## Approach
 
-- Package the personal environment as a Dev Container Feature. Use the Dev
-  Container CLI to add it to existing projects without changing their shared
-  configuration or lockfiles.
-- Keep `dev` a small host-side wrapper around Dev Container CLI and tmux.
-  Start with Python and install it through Homebrew on macOS, with its own
-  runtime rather than depending on a project's virtual environment.
-- Use each application's existing project-configuration rules, including
-  `.editorconfig` for editor settings. Keep bundled executables separate from
-  project environments; explain the selections actually used, including disabled
-  or unavailable tools. Add custom override configuration only for a real case
-  that existing conventions cannot handle.
-- Let Docker, tmux, Neovim, and OpenCode manage their own state. Keep writable
-  application data outside packaged defaults, persist what needs to survive a
-  rebuild, and discover environments through existing metadata.
-- Pin managed dependencies for Feature releases and record tested versions and
-  platforms. Start with Ubuntu 24.04 on `arm64` for my Apple Silicon Mac; expand
-  support after testing it.
+Package the environment as a versioned Dev Container Feature, then add a small
+Python `dev` launcher installed through Homebrew. Start with Ubuntu 24.04 on
+`arm64`, use existing project conventions and component state, and expand after
+testing. The [architecture](architecture.md) describes how the pieces fit together.
 
 ## Next Steps
 
