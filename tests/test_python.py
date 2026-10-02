@@ -1,11 +1,14 @@
 """Python milestone behavior with the pinned ALE, Ruff, and Pyright processes."""
 
 import json
+import time
 
+import pexpect
 import pytest
 from python_fixture_helpers import (
     codes,
     editor,
+    editor_init,
     forwarding_ruff,
     lua,
     marker_venv,
@@ -55,6 +58,123 @@ assert(vim.wait(10000, function()
 end, 50), 'definition timeout')
 ''',
     )
+
+
+def test_ale_hover_documentation(run, repo_root, tmp_path, workspace):
+    _, source = project(
+        workspace,
+        'def target() -> int:\n    """Local target fixture documentation."""\n'
+        '    return 42\nvalue: str = target()\n',
+    )
+    editor(
+        run, repo_root, tmp_path, source,
+        wait='has("pyright", "is not assignable")',
+        after='''
+vim.g.ale_hover_to_preview = 1
+vim.g.ale_hover_to_floating_preview = 0
+vim.g.ale_floating_preview = 0
+vim.api.nvim_win_set_cursor(0, {4, 15})
+vim.cmd('ALEHover')
+assert(vim.wait(10000, function()
+  for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buffer) and vim.bo[buffer].filetype == 'ale-preview.message' then
+      local text = table.concat(vim.api.nvim_buf_get_lines(buffer, 0, -1, false), '\\n')
+      if text:find('target', 1, true) and text:find('-> int', 1, true)
+        and text:find('Local target fixture documentation.', 1, true) then
+        return true
+      end
+    end
+  end
+  return false
+end, 50), 'hover documentation timeout')
+''',
+    )
+
+
+def test_settings_bridge_leaves_other_ale_client_alone(run, repo_root, tmp_path, workspace):
+    _, source = project(workspace, 'value: int = "wrong"\n')
+    editor(
+        run, repo_root, tmp_path, source,
+        wait='has("pyright", "is not assignable")',
+        after=r'''
+local buffer = vim.api.nvim_get_current_buf()
+local root = vim.fn['ale#python#FindProjectRoot'](buffer)
+vim.fn['ale#linter#GetAll']({'python'})
+vim.fn['ale#linter#Define']('python', {
+  name = 'python_auxiliary', lsp = 'stdio', project_root = root,
+  executable = '/usr/local/bin/pyright-langserver',
+  command = '/usr/local/bin/pyright-langserver --stdio',
+  lsp_config = {python = {analysis = {autoSearchPaths = false}}},
+})
+vim.cmd([[
+function! PythonAuxReady(linter, details) abort
+  let g:python_auxiliary_ready = 1
+endfunction
+call ale#lsp_linter#StartLSP(bufnr(''),
+  \ filter(ale#linter#GetAll(['python']), {_, item -> item.name ==# 'python_auxiliary'})[0],
+  \ function('PythonAuxReady'))
+]])
+assert(vim.wait(10000, function() return vim.g.python_auxiliary_ready == 1 end, 50),
+  'auxiliary server startup timeout')
+local found = false
+for _, client in ipairs(vim.lsp.get_clients({bufnr = buffer})) do
+  if client.name == '/usr/local/bin/pyright-langserver:' .. root then
+    found = true
+    assert(client.initialized, 'auxiliary real Pyright client did not initialize')
+    assert(vim.fn['ale#lsp#GetConnectionConfig'](client.name).python,
+      'auxiliary ALE config was not delivered')
+    assert(client.settings.python == nil, 'Python bridge mutated the auxiliary client')
+  end
+end
+assert(found, 'auxiliary ALE client was not attached')
+''',
+    )
+
+
+def test_ale_omnifunc_completion_in_terminal(terminal, repo_root, tmp_path, workspace):
+    _, source = project(workspace, 'import os\nvalue: int = "wrong"\nos.pa\n')
+    result = tmp_path / "completion.json"
+    script = tmp_path / "completion.lua"
+    script.write_text(
+        '''
+vim.cmd('ALELint')
+assert(vim.wait(20000, function()
+  local info = vim.g.ale_buffer_info[tostring(vim.api.nvim_get_current_buf())] or {}
+  for _, diagnostic in ipairs(info.loclist or {}) do
+    if diagnostic.linter_name == 'pyright' and diagnostic.code == 'reportAssignmentType' then
+      return true
+    end
+  end
+  return false
+end, 50), 'completion server startup timeout')
+vim.fn.timer_start(50, function(timer)
+  if vim.fn.pumvisible() == 1 then
+    local data = {items = vim.b.ale_completion_result, menu = vim.fn.complete_info(), mode = vim.fn.mode()}
+'''
+        + f"    vim.fn.writefile({{vim.json.encode(data)}}, {lua(result)})\n"
+        + '''
+    vim.fn.timer_stop(timer)
+  end
+end, {['repeat'] = -1})
+vim.api.nvim_echo({{'PYTHON_READY', 'None'}}, true, {})
+'''
+    )
+    child = terminal(
+        "nvim", ["-u", editor_init(repo_root, tmp_path), source, "-c", f"luafile {script}"],
+        timeout=30,
+    )
+    child.expect("PYTHON_READY")
+    child.send("GA\x18\x0f")  # End of os.pa, Insert, Ctrl-X Ctrl-O: actual ALE omnifunc.
+    deadline = time.monotonic() + 10
+    while not result.exists() and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert result.exists(), "ALE completion popup did not appear within 10 seconds"
+    data = json.loads(result.read_text())
+    assert data["mode"] == "i"
+    assert {"path", "pardir"} <= {item["word"] for item in data["items"]}
+    assert any(item["word"] == "path" for item in data["menu"]["items"])
+    child.send("\x05\x1b:qa!\r")  # Cancel completion, leave Insert, quit without saving.
+    child.expect(pexpect.EOF)
 
 
 @pytest.mark.parametrize("policy", ["toml", "json"])

@@ -74,11 +74,20 @@ function M.setup()
         if vim.bo.filetype ~= 'python' then
           return
         end
+        local buffer = vim.api.nvim_get_current_buf()
+        -- ALE names its connections executable:project_root. Match this
+        -- buffer's native Pyright resolution, not every attached ALE client
+        -- that happens to have a "python" configuration section.
+        local executable = vim.fn['ale_linters#python#pyright#GetExecutable'](buffer)
+        local root = vim.fn['ale_linters#python#pyright#GetCwd'](buffer)
+        local connection = executable .. ':' .. (root == vim.NIL and '' or root)
         for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
-          local config = vim.fn['ale#lsp#GetConnectionConfig'](client.name)
-          if config.python then
-            client.settings = config
-            client:notify('workspace/didChangeConfiguration', { settings = config })
+          if client.name == connection then
+            local config = vim.fn['ale#lsp#GetConnectionConfig'](client.name)
+            if config.python and not vim.deep_equal(client.settings, config) then
+              client.settings = config
+              client:notify('workspace/didChangeConfiguration', { settings = config })
+            end
           end
         end
       end,

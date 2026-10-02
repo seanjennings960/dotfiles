@@ -40,8 +40,11 @@ The pinned ALE revision uses Neovim's native LSP transport. It sends its resolve
 configuration in a notification, but does not copy it into the native client's
 `settings`, which Pyright's `workspace/configuration` requests consult. The
 Python module bridges ALE's configuration into that same client's settings on
-`ALELSPStarted` and re-notifies Pyright. Interpreter discovery still belongs to
-ALE; there is no parallel interpreter registry or separate LSP client.
+`ALELSPStarted` and re-notifies Pyright when settings change. It matches the
+current buffer's resolved Pyright executable and project root against ALE's
+connection identity, leaving other attached clients' settings alone. Interpreter
+discovery still belongs to ALE; there is no parallel interpreter registry or
+separate LSP client.
 
 For an explicit interpreter, set the native ALE option before opening the file:
 
@@ -154,14 +157,22 @@ explicit action. To enable format-on-save intentionally, set
 
 ## Fixture evidence and integration
 
-`tests/test_python.py` boots actual Neovim with the recorded ALE checkout and a
-temporary init that adds `nvim`, `nvim/after`, and ALE to runtimepath and enables
-filetype plugins. The real after-ftplugin loads the module. All projects, homes,
-venvs, marker packages, and scripts are generated under pytest temporary dirs.
+`tests/test_python.py` boots actual Neovim with the recorded ALE checkout. Its
+temporary init enables ALE history, then loads the repository's production
+`nvim/init.lua` when available. On the standalone step 1 base, where the core
+init is absent, it supplies a minimal bootstrap that adds `nvim`, `nvim/after`,
+and ALE to runtimepath and enables filetype plugins. Both headless and PTY tests
+use this same startup selection; the real after-ftplugin loads the module. All
+projects, homes, venvs, marker packages, and scripts are generated under pytest temporary dirs.
 There are no pip downloads. The tests verify:
 
 - Default `F401`, a real Pyright assignment mismatch, and completed Ruff formatting.
-- A real ALE definition jump and the ALE omnifunc selection.
+- A real ALE definition jump, hover signature and documentation rendered in an
+  ALE preview, and PTY Insert-mode `Ctrl-X Ctrl-O` completion. Completion waits
+  for real Pyright diagnostics, then asserts that ALE returns `os.path`/`os.pardir`
+  candidates and displays a completion popup in Insert mode.
+- A second real Pyright process started through ALE with its own configuration,
+  verifying that the Python settings bridge does not mutate that auxiliary client.
 - Ruff ignore, line length, and quote style; Pyright assignment policy in both
   TOML and JSON; nested files opened outside the project root.
 - Project, activated, and explicit interpreters using a local typed package
@@ -175,16 +186,20 @@ There are no pip downloads. The tests verify:
 Run the full pinned harness:
 
 ```sh
-docker run --rm --platform linux/arm64 --user vscode \
+docker run --init --rm --platform linux/arm64 --user vscode \
   -v "$PWD:/workspace" -w /workspace dotfiles-m1:baseline make test
 ```
+
+Use `--init` for direct Docker test runs so orphaned checker processes are reaped
+when test applications exit. The shared harness owns timeout/process cleanup.
 
 This step depends on the step 1 harness (PR #14, `27e4e13`). The combined user
 configuration also needs sibling step 5 to load pinned ALE at startup and put
 the configuration root and its `after` directory on runtimepath. The standalone
-tests deliberately supply this bootstrap because this base has no `init.lua`.
-After those changes are combined, manually open a project Python buffer with
-the normal startup, check `:ALEInfo`, request `Ctrl-X Ctrl-O` completion and hover,
-follow a definition, navigate diagnostics, and review explicit formatting.
-Interactive completion/hover and the combined normal startup remain integration
-checks; the headless fixture results do not claim GUI or provider coverage.
+tests supply the minimal bootstrap only while this base has no `init.lua`.
+After those changes are combined, rerun the complete harness: all Python behavior
+tests will automatically exercise production startup, including the completion
+PTY. The standalone branch's results prove ALE behavior with the minimal startup;
+production verification must be run in the combined worktree. A manual normal
+startup check of `:ALEInfo`, editing keys, diagnostics navigation, and formatting
+remains useful alongside those tests. The tests do not claim GUI or provider coverage.

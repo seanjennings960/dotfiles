@@ -7,15 +7,22 @@ def lua(value):
     return json.dumps(str(value))
 
 
-def editor(run, repo_root, tmp_path, source, *, before="", wait="true", after=""):
+def editor_init(repo_root, tmp_path):
+    """Use production startup in combined worktrees, ALE-only on the step 1 base."""
     init = tmp_path / "python-init.lua"
-    init.write_text(
+    core = repo_root / "nvim/init.lua"
+    bootstrap = f"dofile({lua(core)})\n" if core.is_file() else (
         f"vim.opt.runtimepath:prepend({lua(repo_root / 'vim/bundle/ale')})\n"
         f"vim.opt.runtimepath:prepend({lua(repo_root / 'nvim')})\n"
         f"vim.opt.runtimepath:append({lua(repo_root / 'nvim/after')})\n"
-        "vim.g.ale_history_log_output = 1\n"
         "vim.cmd('filetype plugin indent on')\n"
     )
+    init.write_text("vim.g.ale_history_log_output = 1\n" + bootstrap)
+    return init
+
+
+def editor(run, repo_root, tmp_path, source, *, before="", wait="true", after=""):
+    init = editor_init(repo_root, tmp_path)
     result = tmp_path / "editor.json"
     script = tmp_path / "python-test.lua"
     script.write_text(
