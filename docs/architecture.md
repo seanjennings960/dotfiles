@@ -3,6 +3,133 @@
 This is the planned design. Delivery order and completion checks are in the
 [roadmap](project.md).
 
+
+## High-level Design
+
+`dotfiles` is a TUI application, focused on human-agent collaborative software
+development.  It provides a Python-, `click`-based CLI called `dev` which
+orchestrates a number of developer tools.
+
+The first target platform is MacOS installation via `homebrew`. After
+installing the CLI with
+```
+brew install dotfiles
+```
+the TUI can be started with the argument-free `dev` command, which is an
+alias for `dev enter host`. 
+
+`dev` makes opinionated decisions about toolset to ensure a smooth integration.
+Integration tests autonomously verify the interactions between components by
+simulating keystrokes input to a shell process.
+
+`dev` composes the following submodules (`click` subcommands):
+* `dev env` -- Report active environment, change between them
+* `dev tools` -- Manage the tools attached to project: install, upgrade,
+  and remove
+* 
+
+## Features
+
+
+* Continuous Integration and Review
+* Cost-Efficient, Reproducible, Isolated Environments
+* Observable Agentic Execution
+* Keyboard-based Code Editing and Navigation
+* Integrated Static Analysis tooling
+
+
+### Continuous Integration Workflow
+
+Coninuous Integration (CI) is a software development practice which aims to
+enable rapid software iteration while ensuring quality via a testing-enforced
+integration policy. It is a core feature of code hosting providers such as
+Github.
+
+Human review of agentic code and behavior is a major goal of the IDE (it's 
+vital to maintain an understanding of generated codebases!). Therefore, another
+key feature of this project is continuous review (CR). We'll leverage Github's
+web interface for human review of code, with `opencode`'s in-app diff viewer
+is another contender.
+
+An important part of the review process is a question of transparency. Github's
+PR history serves as a auditable record of design decisions and development 
+history. `opencode` session histories will be preserved to enhance the
+traceability.
+
+
+
+### Environment
+
+`dev` supports cost-efficient, reproducible, and isolated environments. 
+
+A dev environment contains all the information needed to reproducibly compile
+and run a piece of software. may have binaries
+Each environment has a type: either host or docker. available The environment type can
+with installed executables 
+
+`dev` manages the **active environment**, which can entered and exited.
+`dev env` displays the current environment status.
+
+`dev env` manages installation, upgrade, and removal of install developer
+tools.
+
+
+### Tools
+
+Subcommand:
+
+`dev tools`
+
+lists installed language toolchains.
+
+A tool is a versioned executable and a toolchain is a labeled set of tools.
+
+`dev tools` handles tool versioning by delegating to selected package manager.
+We'll start with `apt-get`.
+
+### Language toolchains
+
+Subcommand:
+
+`dev languages`
+
+lists installed language toolchains.
+
+A language toolchain is a toolchain with special meaning to
+`nvim` and `opencode`. For example,
+* Language Interpreter: Python 3.12
+* Linter: Flake8
+* Static Analysis: Pyright
+* Toolchain manager: hatch
+
+`dev` manages `nvim` and `opencode`'s LSP integration to manage active and
+inactive toolchains.
+
+`dev` ships with a set of default toolchains (configurable via feature flags),
+but also supports project overrides.
+
+
+
+
+
+The set of all tools, the "toolset", is packaged as a `devcontainer` [feature](
+https://containers.dev/implementors/features/), 
+
+
+## Implementation
+
+The IDE is built on a variety of existing technologies:
+* `tmux`: a terminal multiplexer which allows a developer to split their screen
+  and navigate multiple terminals
+* `zsh`: an enhanced shell interpreter with improved developer interactivity
+* `opencode`: an tool for agent-based coding development
+* `nvim`: a keyboard-focused text editor
+* `devcontainer`: a technology for connecting developer editors to docker
+containers
+
+
+# Agentic Description
+
 ## Components
 
 | Component | Responsibility |
