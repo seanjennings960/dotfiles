@@ -5,6 +5,7 @@
         "context": ".."
     },
     "remoteUser": "vscode",
+    "init": true,
     "customizations": {
         "vscode": {
             "settings": {
