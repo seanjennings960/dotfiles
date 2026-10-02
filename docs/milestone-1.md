@@ -30,6 +30,10 @@ headless Neovim. They assert exit statuses, files, application state, actual
 diagnostics, selected executables, and received input. They do not require desktop
 control or provider credentials.
 
+The devcontainer runs with an init process to reap application subprocesses.
+Timed-out subprocess tests terminate their private process groups, including
+language servers that would otherwise keep captured output streams open.
+
 The final manual checklist covers Ghostty rendering, actual Mac clipboard
 copy/paste, Bash-versus-Zsh preference, and whether each plugin improves the
 workflow. Emitted clipboard sequences alone do not prove host clipboard delivery.

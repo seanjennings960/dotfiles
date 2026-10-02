@@ -11,3 +11,6 @@ lint:
 
 test-python:
 	$(TEST_PYTHON) -m pytest $(PYTEST_ARGS)
+
+# Each workflow step owns its additional lint checks alongside its tests.
+-include $(wildcard tests/lint/*.mk)
