@@ -1,315 +1,243 @@
-# Dotfiles Architecture
+# Dotfiles architecture
 
-This is the planned design. Architectural contracts describe what users and
-projects can rely on; the implementation section identifies the technologies
-used to satisfy them. Delivery milestones belong in the [roadmap](project.md).
-The roadmap's current container-first sequence and CLI examples predate the
-host-first contracts below and need alignment in a subsequent revision.
+`dotfiles` provides a terminal-first workspace for human-agent development, with
+keyboard-based editing, integrated code checks, and observable agent execution.
+This is the planned design. User-facing contracts are below; backend mechanisms
+belong in Implementation. Delivery milestones are in the [roadmap](project.md).
 
-## High-level Design
+## Concepts and ownership
 
-`dotfiles` provides a terminal-first development workspace for human-agent
-collaboration. Its `dev` CLI manages personal developer tools and connects users
-to host or container environments. The interactive experience is composed from
-the terminal multiplexer, shell, editor, and coding agent.
-
-The first target host is macOS, with the launcher installed through Homebrew:
-
-```sh
-brew install dotfiles
-```
-
-Installing the launcher supplies its execution dependencies. Personal toolset
-installation is a separate operation through `dev tools install`. The launcher
-must run independently of a project's Python environment.
-
-Bare `dev` is equivalent to `dev env enter host`. Container entry is explicit,
-including in projects that contain devcontainer configuration.
-
-The central ownership rule is:
-
-> `dev` owns the personal development experience; the project owns the software
-> being developed.
-
-## Goals
-
-- Keyboard-based code editing and navigation.
-- Integrated formatting, diagnostics, and language intelligence.
-- Versioned personal defaults that work on the host and in project containers.
-- Reusable environments with explicit persistence and isolation guarantees.
-- Observable agent execution and continuous human review.
-
-## Concepts and Ownership
+The public model has three independent concepts:
 
 | Concept | Responsibility |
 | --- | --- |
-| Workspace | Project files and project-owned configuration. Each Git worktree is a distinct workspace. |
-| Environment | The execution context for a workspace: host or container, filesystem access, development user, and lifecycle. |
-| Personal toolset | The user's selected defaults and requested versions, stored outside shared project configuration. |
-| Tool | A versioned, installable component providing executables or integration capabilities. One tool can provide multiple commands; editor plugins are tools too. |
-| Language profile | A named grouping of tools and integrations for a language's runtime, formatting, diagnostics, and language intelligence. |
+| Workspace | A writable copy of project files and project-owned configuration. |
+| Environment | Where commands run, which resources they can access, and how long processes and data live. Either host or container. |
+| Personal toolset | The user's selected developer tools, versions, and default integrations, stored outside shared project configuration. |
 
-`dev` manages the personal toolset and its realization in each environment.
-Projects own application dependencies, dependency lockfiles, build/test commands,
-code policy, and project-specific tool selections. Applications resolve their
-own settings and own their generated state. Environment and terminal backends
-own container and session lifecycle metadata.
+`dev` owns the personal development experience; projects own dependencies,
+lockfiles, build/test commands, and code policy. Applications resolve their own
+settings and own their generated data. Personal operations preserve project and
+existing user configuration, report conflicts, and are safe to repeat.
 
-Personal operations must preserve shared project configuration and lockfiles.
-Existing user configuration is preserved during activation; a conflict is
-reported rather than silently overwritten. Repeated activation is safe and
-reports failures accurately.
+## Security and agent isolation
 
-## Architectural Contracts
+Treat agents and the code they execute as untrusted. Agents start in containers,
+each with its own workspace copy, writable application state, and build/test
+resources. Starting another agent must not reuse an existing agent's writable
+environment. Human host entry does not authorize a host agent; managed host-agent
+launches require separate, explicit user authorization.
 
-### Workspace and Environment Selection
+An agent can access its workspace and explicitly granted resources. Access
+outside that scope requires user permission. Grants identify the minimum data,
+operations, and recipients needed; project configuration cannot grant host
+access or elevate privileges. Host environments have the user's machine access
+and do not provide agent isolation.
 
-The workspace defaults to the enclosing Git worktree root, or the invocation
-directory outside Git. An explicit workspace path overrides discovery. New
-terminal sessions and `dev exec` start in the invocation directory when it is
-inside the selected workspace, or at the workspace root otherwise. Container
-execution uses the corresponding directory in the mounted workspace.
+Mutable resource sharing is opt-in, with a named owner and a coordination rule
+for writes. Communication grants expose bounded channels, not general host
+command execution. Isolation applies to all code an agent runs, including
+subprocesses, not only operations requested through its interface.
 
-Host means the machine running the host launcher. A container is a separate
-execution environment and must not be reported as the host simply because a
-command runs inside it. Operations requiring an unreachable host report that
-limitation.
+## Environment behavior
 
-The active environment is scoped to the invoking session. Entering an
-environment opens or attaches to its terminal workspace; it does not change
-unrelated sessions or mutate the caller's shell environment. Outside a managed
-session, the active context is the host. Inspection reports both the environment
-and workspace it is describing.
+The workspace defaults to the enclosing project root, or the invocation
+directory outside a project. An explicit path overrides discovery. New commands
+start in the invocation directory when it lies inside the workspace, or at its
+root otherwise; containers use the corresponding workspace path.
 
-Host entry works without devcontainer configuration or a running container
-backend. Container entry uses the project's devcontainer configuration and
-preserves its base image, development user, setup hooks, and project pins.
-Missing configuration or failed setup is reported; container entry does not
-silently fall back to host execution.
+Bare `dev` enters the host for human work. Container entry is explicit and uses
+project environment configuration subject to the security contract. Missing
+configuration or failed setup stops entry and execution without falling back to
+the host. Host entry works without container configuration or running containers.
 
-### Entry, Execution, and Lifecycle
+The active environment is local to the invoking terminal or command, never a
+machine-wide switch. An unmanaged invocation defaults to the host. Host means
+the machine running the launcher, not whichever machine runs a command.
+Inspection names both the workspace and environment; unreachable-host operations
+report that limitation.
 
-Entry reuses a running terminal session for the same workspace and environment
-when available, preserving that session's working directories and processes.
-Otherwise it creates one after the environment is ready. Missing prerequisites
-are reported with the appropriate setup action. Project setup required for
-container use completes before attachment or command execution. Tools are
-resolved when used so that setup-installed dependencies are available.
+Entry reconnects to existing work for the same workspace and environment when
+available, preserving running processes and directories. Otherwise it starts
+work after required setup. `dev exec` needs no interactive entry and preserves
+arguments, working directory, streams, exit status, and terminal behavior.
 
-`dev exec` runs in the invoking context's environment without requiring an
-interactive terminal session. It preserves command arguments, working
-directory, standard streams, exit status, and interactive terminal behavior
-when a terminal is present. A failed environment setup prevents execution.
+Disconnecting leaves processes running while the environment remains alive.
+Exiting a shell does not destroy its environment. Rebuild recreates a container
+and ends its processes; it is unsupported on the host. Workspace files, saved
+editor undo, and agent history survive recreation, but running processes do not.
+A fresh launcher can reconnect without depending on a previous launcher process.
 
-Detaching a terminal client leaves its session running while the execution
-environment remains alive. Exiting a shell ends that shell; it does not request
-container destruction. Rebuilding recreates the container and ends its running
-processes. Rebuild is a container operation; invoking it for the host reports an
-unsupported operation.
+## Personal tools and project choices
 
-There is no machine-wide active-environment switch. A fresh launcher process
-can discover and reconnect to existing environments and sessions using backend
-metadata. Any discovery cache is disposable.
+Install applies the selected tools and exact versions. Upgrade selects newer
+versions, records the selection, and reports individual failures. Remove affects
+only personally managed installations and preserves dependencies still needed
+by retained tools.
+Unavailable versions and conflicts are reported, never silently substituted.
 
-### Personal Tool Management
+Container toolset changes normally take effect through rebuild. A temporary
+install can try a prospective tool or package in the current container without
+rebuilding or changing the saved selection. Inspection marks this runtime drift;
+recreation discards it. Keeping the change requires explicitly recording the
+package and version in the personal toolset or project dependency specification.
+Temporary installation does not grant an agent privilege elevation.
 
-`dev tools` manages personal defaults in the invoking context's environment.
-The personal toolset specification expresses desired tools and versions;
-inspection separately reports what is installed. A failed or incomplete install
-must remain visible as a difference between those states.
+Personal runtimes and checkers stay separate from project dependencies. Runtime
+selection, checker selection, and code policy are independent and use the
+applications' existing resolution rules. An unavailable project-selected tool
+is not replaced with a personal default. Disabling an integration does not
+uninstall shared tools or alter project configuration.
 
-- **Install** realizes the selected defaults, including requested versions. It
-  reports conflicts with installations it does not own instead of taking them
-  over implicitly.
-- **Upgrade** selects newer versions of personal defaults and realizes that
-  selection. It records the requested versions and reports individual failures.
-- **Remove** removes a tool from the personal selection and removes its managed
-  installation where supported. Project-owned or independently installed tools
-  remain outside its ownership. Shared dependencies still required by retained
-  tools are preserved.
+Read-only inspection distinguishes desired from installed tools and enabled
+from effective integrations. It reports versions, executable paths, ownership,
+environment, working directory, and settings sources. Disabled, unavailable, or
+unresolved selections and differences between editor, agent, and terminal checks
+are visible. A configuration file's presence is not proof of an active override.
 
-On the host, changes use installers appropriate to that platform. In containers,
-changes update the personal toolset used for image construction and take effect
-through rebuild/recreation. An operation reports whether the current environment
-already reflects the selection or still needs recreation. Packages installed
-manually in a running container are not part of the reproducible specification.
+## Reproducibility and efficiency
 
-The selected installation mechanism must support the requested version or
-report it as unavailable. Substituting a different version silently is not
-allowed. Personal tool versions can differ from project-selected versions.
+Reproducing code correctness requires more than tool versions. Record the code
+revision, platform, base environment, direct and transitive dependencies,
+configuration, setup/build/test commands, and required runtime inputs or services.
+Projects supply their prerequisites; `dev` records the personal contribution.
+Unpinned inputs, external state, and temporary changes are explicit limitations.
 
-### Defaults and Project Overrides
+Environment creation reuses compatible prepared environments and cached inputs.
+It works offline when prerequisites are cached and setup needs no network.
+Report missing inputs; fetching them is explicit and preserves recorded versions.
+Rebuild only when build inputs change or the user requests it. Share approved
+immutable data read-only, but keep writable source, build output, test data, and
+service state private unless sharing is explicitly coordinated. Apply
+per-environment resource limits and measure startup and concurrent-agent costs.
 
-Keep personal runtimes and checkers separate from project dependency
-environments. Use each component's existing resolution rules: `.editorconfig`
-for editor policy, checker configuration such as `pyproject.toml`, project
-language environments, and the coding agent's personal/project configuration.
-Merge settings only where that component supports merging.
+Agent changes and execution history remain available for human review, correlated
+with the workspace, starting code revision, and environment inputs. Projects own
+their CI and integration policy.
 
-Runtime selection, checker selection, and code policy are independent choices.
-For example, a project can use its `.venv` and Ruff rules from `pyproject.toml`
-while retaining the personal Ruff executable. An explicitly selected but
-unavailable project tool is reported as unavailable; it is not silently replaced
-by a personal default.
+## Command interface
 
-`dev` supplies integrations and observes application resolution. It delegates
-project dependency installation and selection to the project's existing tools
-and conventions. A custom project override format requires a concrete need
-that those conventions cannot satisfy.
-
-### Language Profiles and Inspection
-
-A language profile can provide independently enabled capabilities:
-
-- Runtime or interpreter defaults.
-- Formatting.
-- Linting and type-checking diagnostics.
-- Completion, navigation, and hover.
-
-An LSP server is one integration mechanism; formatters and other tools can use
-different interfaces. Project dependency management remains project-owned even
-when a personal default supplies the manager's executable. Python is the first
-profile.
-
-Disabling a profile stops its default integrations without removing shared
-tools or changing project configuration. Installed tools and enabled
-capabilities are separate states.
-
-`dev tools` reports desired and installed personal tools, their versions, paths,
-and ownership. `dev languages` reports enabled capabilities and effective
-runtime/checker selections for the workspace, including executable paths,
-versions, environment, working directory, and relevant settings sources.
-Disabled, unavailable, and not-yet-resolved selections are explicit.
-
-Effective inspection uses the applications' resolution results. A configuration
-file's presence alone is not evidence of an override. If an application has not
-resolved a selection, inspection reports that limitation rather than presenting
-an inferred default as observed behavior. Editor, agent, and terminal checks
-should use matching selections when configured for the same capability; any
-differences must be visible.
-
-### State and Reconnection
-
-Workspace files, persistent application data, and running processes have distinct
-lifetimes. Workspace files and designated application state survive container
-recreation. A terminal session survives client disconnection only while its
-execution environment stays running.
-
-The editor owns undo history; the coding agent owns conversations and generated
-data. Writable state is separate from packaged configuration. On the host it
-uses the user's application state locations. In containers, designated state
-uses persistent storage associated with the development user and workspace
-where applicable, and is reattached after recreation.
-
-A new editor process must be able to recover saved undo history after container
-recreation. Agent session history must likewise remain discoverable. Persisting
-files does not promise recovery of running processes after restart or rebuild.
-
-### Versions, Reproducibility, and Isolation
-
-Personal defaults are versioned. Record requested and installed versions of
-managed runtimes, executables, plugins, and their dependencies. Versioned
-container toolsets reference exact releases or digests; reproducibility also
-depends on the project base image, package sources, and dependency locks.
-Unpinned or unavailable inputs are reported as limitations.
-
-Host environments operate within the user's existing machine and share its
-filesystem and system state. They do not provide container-style isolation.
-Container environments provide a separate execution filesystem with explicitly
-shared workspace and state storage. Project dependency reproducibility remains
-the project's responsibility. Cost efficiency comes from reusing environments
-and sessions; resource limits remain the environment backend's responsibility.
-
-Host tool updates affect future tool invocations; running applications may need
-restarting. Updated container tools or packaged configuration require rebuilding
-and recreating the container. Project settings and supported external personal
-overrides require the affected application to reload. Mount changes require
-container recreation.
-
-### Continuous Integration, Review, and Observability
-
-Projects own their CI commands and integration policy. The development workspace
-makes those commands available in the intended environment and supports human
-review of agent-produced changes through GitHub pull requests and application
-diff views.
-
-Git history and pull requests record code changes and design decisions. Retained
-agent sessions provide execution context. Sessions must remain identifiable by
-workspace and session ID. For Git workspaces, record the branch and Git revision
-at the start of work for correlation. The agent remains the source of its
-conversation history; `dev` preserves access to that history through the state
-contract above.
-
-Integration tests verify interactions between real components using isolated
-homes and workspaces, including simulated terminal input. They cover repeated
-activation, failed setup, reconnection, persistence, and project overrides.
-Native macOS behavior is verified on a Mac; Linux container coverage does not
-establish host behavior. Emulated tests are reported separately. Terminal
-rendering and actual system clipboard delivery also need manual verification.
-
-### Command Interface
-
-The planned public interface follows the ownership boundaries above:
+The proposed interface expresses these contracts:
 
 ```text
-dev                         Enter or attach to the host workspace
-dev env                     Show the current environment and workspace
-dev env enter host          Enter or attach to the host workspace
-dev env enter container     Prepare and enter the project's devcontainer
-dev env rebuild             Rebuild/recreate the current container and enter it
-dev tools                   Show desired and installed personal tools
-dev tools install           Install the selected personal defaults
-dev tools upgrade           Upgrade personal defaults
-dev tools remove <tool>     Remove a personally managed tool
-dev languages               Show enabled profiles and effective selections
-dev exec <command>          Run a command in the current environment
+dev                                    Enter or reconnect to human host work
+dev env                                Show the environment and workspace
+dev env enter host                     Enter or reconnect to host work
+dev env enter container                Prepare and enter a project container
+dev env rebuild                        Rebuild/recreate the container and enter it
+dev agent start                        Copy the workspace and start an isolated agent
+dev tools                              Show desired and installed personal tools
+dev tools install [<tool>]              Install defaults or a selected tool
+dev tools install --temporary <tool>    Try a tool in the current container
+dev tools upgrade                      Upgrade personal defaults
+dev tools remove <tool>                Remove a personally managed tool
+dev languages                          Show enabled and effective language support
+dev exec <command>                     Run a command in the current environment
 ```
 
-`env`, `tools`, and `languages` inspection is read-only. Command options for
-workspace selection and targeted tool/profile operations will be specified in
-the implementation section.
+Agent selection and authorization options remain to be specified.
 
 # Implementation
 
-The implementation builds on existing technologies:
+## Components
 
 | Component | Responsibility |
 | --- | --- |
-| Python and Click | The host-side `dev` CLI, packaged through Homebrew with its own Python runtime. |
+| Python and Click | The macOS host launcher, installed with `brew install dotfiles` and its own Python runtime. Personal tools install separately. |
 | Ghostty or another terminal | Host terminal input and rendering. |
-| tmux | Terminal layout, keyboard navigation, running sessions, and attachment. |
-| Shell | Interactive command execution and completion; Zsh is the proposed default. |
-| Neovim | Keyboard-focused editing, undo history, and language integrations. |
-| OpenCode | Agent-assisted development, conversation state, and code inspection. |
-| Docker and Dev Container CLI | Container execution and project devcontainer lifecycle. |
-| Personal Dev Container Feature | Container packaging of the selected personal tools and defaults. |
+| tmux | Layout, keyboard navigation, running sessions, attachment and detachment. |
+| Shell | Interactive execution and completion; evaluate Zsh after a Bash baseline. |
+| Neovim and OpenCode | Editing, code checks, agent execution, diff review, and their own undo/conversation state. |
+| Docker and Dev Container CLI | Container execution, image caching, volumes, limits, and project setup. |
+| Personal Dev Container Feature | Versioned packaging of personal tools and defaults outside project configuration. |
 
-The host toolset requires macOS-compatible installers. The container toolset
-starts with Ubuntu 24.04 on `linux/arm64`; its package installation can use
-`apt-get` alongside tool-specific installers. Python, Ruff, and Pyright are the
-initial language tools.
+Start with Ubuntu 24.04 on `linux/arm64`, using `apt-get` and tool-specific
+installers; host tools need macOS-compatible adapters. Python, Ruff, and Pyright
+come first. Language profiles are internal bundles of independently enabled
+runtime, formatter, diagnostics, and language-intelligence integrations. LSP is
+one mechanism, not a requirement for every tool.
 
-For container entry, the existing implementation direction is:
+Use `.editorconfig`, project environments such as `.venv`, checker settings such
+as `pyproject.toml`, and OpenCode's existing configuration resolution. Merge only
+where supported and inspect application results rather than adding a second
+resolver. A project can keep personal Ruff while choosing its own Python and
+Ruff rules.
 
-1. Read the project's devcontainer configuration and the personal Feature
-   selection, which lives outside the project.
-2. Call `devcontainer up` with `--additional-features` to add the selected Feature
-   to the image/Dockerfile or Compose development service. Preserve project pins
-   and leave shared configuration and lockfiles unchanged.
-3. Activate defaults for the configured development user, with writable
-   configuration and persistent state directories. System dependency installation
-   runs as root; usable configuration and application data belong to that user.
-4. Wait for required project setup, then use `devcontainer exec` to attach to
-   tmux or run the requested command.
+## Launch and persistence
 
-Docker owns containers and persistent volumes; tmux owns sessions. Neovim and
-OpenCode retain ownership of their configuration resolution and generated data.
-Use an exact Feature release or digest and a tested Dev Container CLI version.
-Docker Desktop runs Linux in a VM on macOS; `amd64` containers on Apple Silicon
-use emulation.
+1. Discover the enclosing Git worktree or use an explicit workspace path. Each
+   worktree is a distinct workspace. Agent launches create separate clones or
+   copies with independent writable Git metadata, not a shared working tree.
+2. Validate project devcontainer settings against the granted access. Preserve
+   permitted base image, user, hooks, and pins; reject conflicting privileges or
+   mounts. Host-side lifecycle hooks require separate authorization.
+3. Run `devcontainer up --additional-features` with the external personal Feature
+   selection. Pin the Feature release/digest and tested CLI version. Cache builds
+   by base image, Feature, configuration, and dependency inputs.
+4. Activate defaults for the development user, wait for project setup, then use
+   `devcontainer exec` to attach to tmux or execute a command. Resolve tools after
+   setup. Host entry attaches locally without using the container backend.
 
-Host launch mechanics, installer adapters, configuration locations, and the
-remaining implementation details will be specified against the contracts above.
+Docker owns container/volume metadata; tmux owns session metadata. Discover both
+rather than creating a second lifecycle registry. Persist Neovim undo and
+OpenCode history outside packaged configuration, in storage scoped to the
+workspace and user. Keep each agent's writable storage separate and reattach it
+after recreation. Record branch, initial Git revision, and OpenCode conversation
+ID for review through diffs and GitHub pull requests.
+
+Tool or packaged configuration changes invalidate the affected image; unchanged
+inputs reuse it. Mount changes recreate containers. Project settings reload the
+affected application. Host updates affect future invocations; running tools may
+need restarting. Temporary user-space installs use the container's writable
+layer or disposable private volume, not persistent application-state storage.
+System-package trials require a user-authorized, constrained installer, never
+agent-accessible sudo.
+
+## Enforcing the agent boundary
+
+The host launcher and container runtime are trusted; agents and project launch
+settings are not. Managed container agents run as non-root users without sudo,
+privileged mode, host namespaces, excess capabilities, or Docker socket access.
+Enable no-new-privileges and runtime syscall controls. Mount only the agent's
+copy and approved state, not the host home, credentials, or unrelated workspaces.
+Isolate service ports and networks; deny host-service and peer access by default
+and grant required outbound access separately. Network names alone do not enforce
+this policy. Setup code follows the same resource restrictions.
+
+Root installation belongs to trusted build or constrained installer steps.
+Project hooks cannot approve their own host execution or expanded access. A
+host-side broker for sharing should expose named data/channel operations with
+user-approved grants, not arbitrary commands. OpenCode workspace permission
+prompts complement these runtime restrictions but do not constrain arbitrary
+code launched by an agent.
+
+Use Linux users, groups, and filesystem permissions for approved shared storage.
+If swarm storage needs distinct identities, prototype host-managed UID/GID
+provisioning; account creation is not an agent capability. Kernel/runtime
+exploits remain outside the guarantee. Docker Desktop adds a Linux VM boundary on
+macOS; this is not equivalent to a separate VM for every agent.
+
+## Sharing and open questions
+
+- Reuse read-only image layers, downloaded artifacts, and tool caches. A trusted
+  cache writer publishes immutable entries; agents do not share writable caches.
+- Prototype channel-based Unix domain sockets with private socket directories,
+  peer authentication, and scoped operations. Sharing a channel must not expose
+  the host runtime socket. Check transport across the macOS/Linux VM boundary
+  before adopting it.
+- Measure cached creation latency, offline setup, idle memory per agent, and
+  concurrent build/test throughput. Docker overhead, especially its macOS VM,
+  is an open risk. Compare alternatives if measurements miss the required budget;
+  isolation remains mandatory. Numeric budgets need an initial baseline.
+
+## Verification
+
+Integration tests use isolated homes and workspaces and simulate terminal input.
+Cover repeated activation, failed setup, reconnection, undo/history recovery,
+project overrides, cached offline creation, temporary-install drift, and concurrent
+agents unable to modify each other's source/state or reach ungranted host resources.
+Run native macOS tests on a Mac and report emulation separately; manually verify
+terminal rendering and system clipboard delivery.
 
 ## References
 
@@ -317,63 +245,3 @@ remaining implementation details will be specified against the contracts above.
 - [Dev Container CLI](https://github.com/devcontainers/cli)
 - [EditorConfig](https://editorconfig.org/)
 - [OpenCode configuration](https://opencode.ai/docs/config/)
-
-
-# Inline Feedback
-
-Too much to type into Github, here's a few pieces of feedback to incorporate:
-
-## Desirata
-
-As I'm thinking more deeply, the following properties are desired.
-
-* Fast, offline-friendly environment creation
-* Spawning agents in isolated environments
-  - We'll assume agents are building code and so they should each have their
-    own copy
-* Reproducibility of code
-  - All prerequisites of code correctness
-* Isolation of agent testing / runtime environments
-  - We don't want them to stomp on each other's work, so sharing of resources
-    should be made explicit.
-  - I'm thinking channel-based Unix domain sockets could be a good communication
-    primitive
-* Efficiency of runtime environments
-  - Sharing resources is more efficient, how do we share the most amount of
-    resources while avoiding data races
-  - A major question/risk for the project: is Docker's containerization too
-    heavyweight to achieve good efficiency.
-  - Images should only be rebuilt as needed so I'm imagining a temporary
-    runtime container installation of prospective packages would be a useful
-    feature
-* The security risk of privelege escalation
-  - I should define a security model up front. I don't want agents running
-    on my machine
-  - A major front of entry is moving from container to host. Spawning host
-    agents should be made explicit and done with great care. Prefer an easy
-    pathway for explicitly sharing the minimum amount of data.
-  - I like how opencode gives file permission to files within workspace,
-    and asks permission for files outside.
-  - Generally, I think we want to leverage Linux and Docker's security models
-    as much as possible.
-  - I'm thinking an interface to create new users and
-    groups could be helpful for operating a swarm...
-
-
-
-## Main Issue
-
-The architecture is still to loose with certain terminology. I will insist
-upon a strict separation of user-facing concepts in
-`# Dotfiles architecture` from the internal concepts in the
-`# Implementation` sections.
-
-For example, session is a concept from `tmux` (implementation) that is
-interspersed in the architecture section. Sitting on top of the behavior of
-`tmux` (attaching and detaching to a remote serer) beckons for the
-`session` concept to be integrated into `dotfiles`. The number of concepts that
-native to `dotfiles` should be actively limited to limit complexity. Maximally
-orthogonal concepts help.
-
-Relatedly, please make the document more concise.
-

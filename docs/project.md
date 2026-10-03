@@ -31,10 +31,12 @@ Ubuntu 24.04 devcontainer. The Neovim setup needs consolidation. The Feature and
 
 
 
-Package the environment as a versioned Dev Container Feature, then add a small
-Python `dev` launcher installed through Homebrew. Start with Ubuntu 24.04 on
-`arm64`, use existing project conventions and component state, and expand after
-testing. The [architecture](architecture.md) describes how the pieces fit together.
+Package the personal toolset as a versioned Dev Container Feature, then add a
+small Python `dev` launcher installed through Homebrew. Start integration work
+with Ubuntu 24.04 on `arm64`; the launcher initially supports human host entry on
+macOS and explicit container entry. Agents run in isolated containers, each with
+its own code copy. The [architecture](architecture.md) defines the contracts and
+security model; use existing project conventions and component state.
 
 ## Next Steps
 
@@ -68,24 +70,36 @@ and confirm project settings take effect.
 - Preserve Neovim undo history across container recreation using persistent
   storage. Distinguish recovering saved application state from keeping processes
   running.
+- Pin and record build inputs, reuse cached images, and verify offline creation
+  when prerequisites are cached. Prototype temporary package installation with
+  visible runtime drift and explicit promotion into the saved specification.
+- Measure cached startup, per-environment memory, and concurrent test throughput
+  early enough to evaluate Docker overhead before committing to swarm scale.
 
 **Done when:** repeated setup and rebuilds leave shared project configuration
 unchanged, the expected checkers run after project setup, and a new Neovim process
-can undo a known saved edit after recreation.
+can undo a known saved edit after recreation. Cached creation works offline, and
+recreation discards temporary packages without changing the saved specification.
 
 ### 3. Add the host launcher
 
 Implement this proposed interface using the same tested workflow:
 
 ```text
-dev                  Launch or reuse the environment and attach to tmux
-dev exec <command>   Run a command in the project environment
-dev rebuild          Rebuild/recreate the environment and enter it
-dev tooling          Show active executables, versions, and configuration sources
+dev                         Enter or reconnect to human host work
+dev env                     Show the environment and workspace
+dev env enter container     Prepare and enter a project container
+dev env rebuild             Rebuild/recreate the container and enter it
+dev tools                   Show desired and installed personal tools
+dev languages               Show enabled and effective language support
+dev exec <command>          Run a command in the current environment
 ```
 
 Keep personal Feature selection outside the project. Reuse existing container
-and session metadata instead of maintaining a second registry.
+and session metadata instead of maintaining a second registry. Add native macOS
+tool installers and tests. Host entry must work without Docker, and container
+setup failures must never fall back to host execution. Validate project hooks,
+mounts, and privileges against explicit host-access grants before launch.
 
 **Done when:** I can install through Homebrew, launch either test project from my
 Mac, reconnect from a fresh `dev` process, and inspect selections that match the
@@ -97,11 +111,14 @@ the host launcher.
 - Add Rust and Julia using the same default/project selection conventions.
 - Reconnect to persistent remote work through SSH and tmux. Investigate OpenCode
   plugins, its server API, and existing integrations before building coordination.
-- Support native macOS workflows and run their tests on a Mac. Consider a Rust
-  CLI only if the implementation needs it; add build or cross-compilation
-  dependencies when required.
-- Coordinate independent agent tasks through one branch/worktree and session per
-  task, returning commits or pull requests. Phone and voice clients can follow.
+- Consider a Rust CLI only if the implementation needs it; add build or
+  cross-compilation dependencies when required.
+- Implement `dev agent start` with independent workspace copies, writable state,
+  and build/test resources. Enforce the architecture's non-root runtime and
+  host-access restrictions before enabling agent launches. Return commits or
+  pull requests; phone and voice clients can follow.
+- Prototype scoped Unix socket channels and user/group provisioning only where
+  explicit resource sharing needs them.
 - Investigate GitHub authentication and a reusable PR skill alongside a security
   review when implementing credential and remote integrations.
 
