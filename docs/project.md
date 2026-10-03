@@ -2,6 +2,19 @@
 
 ## Goal
 
+The goal of this project are twofold:
+1. Develop a terminal-based custom IDE for interactive, reproducible programming
+2. Codify and improve my software development processes.
+
+With this repository being developed at the height of the AI rush, my sentiment 
+is that our desire for a rapid acceleration in coding development speed has
+outstripped our patience to understand the code itself. This project bridges that
+gap by putting the developer in a position to explore, understand, and edit
+agentically-generated code.
+
+
+
+
 I want to bring my terminal-first workflow to a new machine or an existing
 project devcontainer, then use it to reconnect to work on remote machines.
 The core is tmux, Neovim, a shell, and OpenCode, with Ghostty on my Mac.
@@ -15,6 +28,8 @@ Ubuntu 24.04 devcontainer. The Neovim setup needs consolidation. The Feature and
 `dev` command below are planned.
 
 ## Approach
+
+
 
 Package the environment as a versioned Dev Container Feature, then add a small
 Python `dev` launcher installed through Homebrew. Start with Ubuntu 24.04 on
