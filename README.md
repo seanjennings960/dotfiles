@@ -129,6 +129,27 @@ branch if none is configured. Until the parent records the new pointer, status
 will show a change. For your own plugin commits, push them to an accessible
 submodule remote before sharing the parent commit so others can fetch them.
 
+## Ghostty
+
+The installer links `ghostty/` to `~/.config/ghostty`. The tracked
+`config.ghostty` sets a blue-gray background (`#203040`) so you can visibly
+confirm that the shared configuration is loaded. Ghostty 1.2.3 and newer
+support this filename; older versions use `config`.
+
+Ghostty reads this location on both macOS and Linux when `XDG_CONFIG_HOME` is
+unset or points to `~/.config`. If you use a different `XDG_CONFIG_HOME`, link
+`ghostty/` into that directory instead.
+
+On macOS, Ghostty also loads configuration from
+`~/Library/Application Support/com.mitchellh.ghostty/` after the XDG location.
+Conflicting settings there override the shared configuration. Consolidate any
+existing settings into the tracked file if you want a single configuration.
+The installer preserves an existing `~/.config/ghostty` rather than replacing
+it; move it aside before activation if you want to use the repository link.
+
+After activation or edits, reload Ghostty with **Cmd+Shift+,** on macOS or
+**Ctrl+Shift+,** on Linux to see the background change.
+
 ## OpenCode
 
 The installer links `opencode/` to `~/.config/opencode`, making its config,
