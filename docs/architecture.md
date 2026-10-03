@@ -269,7 +269,7 @@ dev exec <command>          Run a command in the current environment
 workspace selection and targeted tool/profile operations will be specified in
 the implementation section.
 
-## Implementation
+# Implementation
 
 The implementation builds on existing technologies:
 
@@ -317,3 +317,63 @@ remaining implementation details will be specified against the contracts above.
 - [Dev Container CLI](https://github.com/devcontainers/cli)
 - [EditorConfig](https://editorconfig.org/)
 - [OpenCode configuration](https://opencode.ai/docs/config/)
+
+
+# Inline Feedback
+
+Too much to type into Github, here's a few pieces of feedback to incorporate:
+
+## Desirata
+
+As I'm thinking more deeply, the following properties are desired.
+
+* Fast, offline-friendly environment creation
+* Spawning agents in isolated environments
+  - We'll assume agents are building code and so they should each have their
+    own copy
+* Reproducibility of code
+  - All prerequisites of code correctness
+* Isolation of agent testing / runtime environments
+  - We don't want them to stomp on each other's work, so sharing of resources
+    should be made explicit.
+  - I'm thinking channel-based Unix domain sockets could be a good communication
+    primitive
+* Efficiency of runtime environments
+  - Sharing resources is more efficient, how do we share the most amount of
+    resources while avoiding data races
+  - A major question/risk for the project: is Docker's containerization too
+    heavyweight to achieve good efficiency.
+  - Images should only be rebuilt as needed so I'm imagining a temporary
+    runtime container installation of prospective packages would be a useful
+    feature
+* The security risk of privelege escalation
+  - I should define a security model up front. I don't want agents running
+    on my machine
+  - A major front of entry is moving from container to host. Spawning host
+    agents should be made explicit and done with great care. Prefer an easy
+    pathway for explicitly sharing the minimum amount of data.
+  - I like how opencode gives file permission to files within workspace,
+    and asks permission for files outside.
+  - Generally, I think we want to leverage Linux and Docker's security models
+    as much as possible.
+  - I'm thinking an interface to create new users and
+    groups could be helpful for operating a swarm...
+
+
+
+## Main Issue
+
+The architecture is still to loose with certain terminology. I will insist
+upon a strict separation of user-facing concepts in
+`# Dotfiles architecture` from the internal concepts in the
+`# Implementation` sections.
+
+For example, session is a concept from `tmux` (implementation) that is
+interspersed in the architecture section. Sitting on top of the behavior of
+`tmux` (attaching and detaching to a remote serer) beckons for the
+`session` concept to be integrated into `dotfiles`. The number of concepts that
+native to `dotfiles` should be actively limited to limit complexity. Maximally
+orthogonal concepts help.
+
+Relatedly, please make the document more concise.
+
