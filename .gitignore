@@ -1,2 +1,11 @@
 .swp
 .backup
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.launcher-venv/
+*.egg-info/
+build/
+dist/
+.verification/

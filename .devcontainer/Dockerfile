@@ -5,6 +5,9 @@ USER root
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         git \
+        make \
+        python3 \
+        python3-venv \
         shellcheck \
         tmux \
         vim \
