@@ -143,7 +143,7 @@ Agent selection and authorization options remain to be specified.
 
 | Component | Responsibility |
 | --- | --- |
-| Python and Click | The macOS host launcher, installed with `brew install dotfiles` and its own Python runtime. Personal tools install separately. |
+| Python and Click | The launcher, initially developed in this repository's Ubuntu devcontainer with a separate Python runtime environment. macOS installation and Homebrew packaging follow in a future PR. Personal tools install separately. |
 | Ghostty or another terminal | Host terminal input and rendering. |
 | tmux | Layout, keyboard navigation, running sessions, attachment and detachment. |
 | Shell | Interactive execution and completion; evaluate Zsh after a Bash baseline. |
@@ -152,7 +152,7 @@ Agent selection and authorization options remain to be specified.
 | Personal Dev Container Feature | Versioned packaging of personal tools and defaults outside project configuration. |
 
 Start with Ubuntu 24.04 on `linux/arm64`, using `apt-get` and tool-specific
-installers; host tools need macOS-compatible adapters. Python, Ruff, and Pyright
+installers; macOS-compatible adapters follow later. Python, Ruff, and Pyright
 come first. Language profiles are internal bundles of independently enabled
 runtime, formatter, diagnostics, and language-intelligence integrations. LSP is
 one mechanism, not a requirement for every tool.
@@ -236,7 +236,10 @@ Integration tests use isolated homes and workspaces and simulate terminal input.
 Cover repeated activation, failed setup, reconnection, undo/history recovery,
 project overrides, cached offline creation, temporary-install drift, and concurrent
 agents unable to modify each other's source/state or reach ungranted host resources.
-Run native macOS tests on a Mac and report emulation separately; manually verify
+Initially verify the launcher on Ubuntu 24.04 `linux/arm64` as the non-root
+devcontainer user. Container host mode means the machine running the launcher,
+not access to the outer macOS machine. Add native macOS tests with macOS
+installation and report emulation separately; manually verify
 terminal rendering and system clipboard delivery.
 
 ## References

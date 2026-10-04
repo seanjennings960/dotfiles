@@ -6,6 +6,10 @@
     },
     "remoteUser": "vscode",
     "init": true,
+    "postCreateCommand": "make launcher-env test-env",
+    "remoteEnv": {
+        "PATH": "/home/vscode/.local/bin:${containerEnv:PATH}"
+    },
     "customizations": {
         "vscode": {
             "settings": {

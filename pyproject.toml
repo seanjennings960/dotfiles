@@ -1,15 +1,26 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "dotfiles-tests"
+name = "dotfiles-dev"
 version = "0.1.0"
-requires-python = ">=3.9"
-dependencies = []
+description = "Host workspace launcher for personal development"
+requires-python = ">=3.11"
+dependencies = ["click==8.3.3"]
+
+[project.scripts]
+dev = "dotfiles_dev.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest==8.4.2", "pexpect==4.9.0"]
+
+[tool.setuptools]
+packages = ["dotfiles_dev"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py311"

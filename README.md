@@ -3,7 +3,7 @@
 A collection of the dotfiles used on my work and home Linux machines.
 
 See the [roadmap](docs/project.md) for the planned terminal-first environment,
-Dev Container Feature, and host-side `dev` launcher, and the
+Dev Container Feature, and the host-side `dev` launcher, and the
 [architecture](docs/architecture.md) for how they fit together.
 
 Prerequisites:
@@ -158,10 +158,9 @@ OpenCode writes JavaScript dependency state into this directory at startup;
 `package.json`, lockfiles, and `node_modules/` are generated and intentionally
 ignored by Git.
 
-The devcontainer installs a pinned OpenCode executable at
-`/usr/local/bin/opencode`. Credentials and session state belong to the development
-user and are created at runtime, outside `~/.config/opencode`. Restart OpenCode
-after changing global config or skills.
+OpenCode installation is separate from the launcher. Credentials and session
+state belong to the user, outside `~/.config/opencode`. Restart OpenCode after
+changing global config or skills.
 
 To install xclip (allows your tmux buffer to sync with the system buffer):
 ```bash
@@ -176,12 +175,8 @@ cd ~/.vim/bundle/YouCompleteMe
 
 ## Development container
 
-The devcontainer provides Ubuntu 24.04 with Git, Vim, Bash completion, tmux, Zsh,
-ShellCheck, Python 3.12, Neovim 0.12.5, Ruff 0.16.10, Pyright 1.1.414, and
-OpenCode 1.18.34. Pyright uses its own Node 22.20.0 runtime, independent of a
-project's Node selection. Release archives have recorded SHA-256 checksums;
-Pyright's npm dependency graph and Python test dependencies are locked. The base
-image is digest-pinned; Ubuntu package updates are resolved at build time.
+The devcontainer provides Ubuntu 24.04 with Python 3.12, venv support, Make,
+Git, Vim, tmux, Zsh, and ShellCheck.
 It uses the non-root `vscode` user with sudo access and Bash as the default
 VS Code terminal. Dotfile activation is manual, so you can choose which
 configurations to try inside the container.
@@ -208,31 +203,88 @@ To add persistent system tools, edit `.devcontainer/Dockerfile`. After changing
 the Dockerfile or `.devcontainer/devcontainer.json`, run **Dev Containers:
 Rebuild Container** from the VS Code command palette.
 
-## Tests and milestone 1
+## Development launcher
 
-The [milestone execution plan](docs/milestone-1.md) separates automated terminal
-checks from manual Ghostty, host clipboard, and workflow evaluations.
+The Python/Click launcher initially runs in this repository's Ubuntu 24.04
+ARM64 devcontainer as non-root `vscode`, using Ubuntu's Python 3.12. Explicit
+creation setup provisions a launcher virtualenv in
+`~/.local/share/dotfiles/launcher` and a separate locked test environment under
+`~/.cache/dotfiles/tests`. Both live inside the container, outside the mounted
+checkout. Project virtualenvs and Python import settings do not select the
+launcher's runtime. Personal tools and activation follow in later PRs.
 
-From the repository root:
-
-```bash
+```sh
 devcontainer up --workspace-folder .
-devcontainer exec --workspace-folder . make test
+devcontainer exec --workspace-folder . dev env
+devcontainer exec --workspace-folder . dev test -q
 ```
 
-The tested CLI version is `@devcontainers/cli` 0.80.1. The baseline is Linux ARM64;
-report x86-64 or emulated runs separately. Run tests as the non-root development
-user. The image installs the locked test dependencies into
-`/opt/dotfiles/test-venv`; `make test` uses that interpreter. For another compatible
-Linux environment, install `requirements-dev.lock` into a dedicated virtual
-environment and set `TEST_PYTHON` to its Python executable.
+The configured `postCreateCommand` runs `make launcher-env test-env`. This is
+explicit environment setup and can download locked dependencies. Entry and
+`dev test` never install dependencies. Repeat setup inside the container with
+`make launcher-env test-env` after changing the launcher/test locks.
+macOS installation, Homebrew packaging, and macOS installer adapters are deferred.
 
-Tests use temporary homes, XDG directories, and workspaces, private tmux sockets,
-and simulated terminal input. Failed terminal tests include transcripts in pytest
-output. At this first step, the suite verifies the harness and installed tools;
-activation, shell, tmux, editor, and project-override regressions are added in their
-respective steps. Syntax checks cover existing scripts; ShellCheck initially
-covers the new provisioning script while legacy scripts are consolidated.
+```sh
+dev                              # enter or reconnect to human host-mode work
+dev env                          # show environment, workspace and initial cwd
+dev --workspace ~/code/project env
+dev env enter host
+dev exec python -m pytest         # run a project's command with its PATH
+dev exec -- printf '%s\n' 'a value with spaces'
+```
+
+Inside this devcontainer, `host` means the Linux container running the launcher,
+not the outer Mac. The launcher does not create managed containers or require a
+Docker socket. Use the commands above inside a container terminal for interactive
+entry; noninteractive entry reports that a terminal is required.
+
+Each Git worktree is a distinct workspace. Outside Git, the invocation directory
+is the workspace. Explicit paths override discovery. Commands keep the invocation
+directory when it lies inside the workspace, otherwise they use the root.
+If a mounted linked worktree's `.git` file points at inaccessible host metadata,
+discovery uses that worktree boundary and inspection reports metadata unavailable.
+Git commands still require reachable Git metadata; an explicit workspace path
+does not repair it.
+Tmux owns persistent sessions on the dedicated `dotfiles-dev` server. Detach with
+the active tmux prefix followed by `d`; entry from a fresh launcher reconnects
+without changing running panes. Existing user tmux and shell configuration can
+still affect interactive startup. Personal activation and bindings follow later.
+`dev env` reports the directory new commands use, not each existing pane's cwd.
+
+`dev exec` preserves arguments, stdin/stdout/stderr, terminal, signals and status.
+Container entry, container context, and rebuild fail without executing on the host.
+
+## Repository tests
+
+Creation setup provisions the locked test environment. Inside the devcontainer,
+run repository checks from any directory:
+
+```sh
+dev test -q
+dev test tests/test_launcher.py -k reconnect
+```
+
+To repeat explicit editable setup from the mounted checkout, inside the container:
+
+```sh
+make launcher-env
+make test-env
+make test PYTEST_ARGS=-q
+```
+
+`dev test` runs this repository's pytest suite, forwards runner arguments and
+returns its exit status. It requires the locked test environment and reports
+missing dependencies without installing. Set `DOTFILES_TEST_PYTHON` to use another
+explicitly provisioned interpreter. The default test cache is keyed by the lock.
+Launcher integration tests require tmux; they do not require the full personal
+toolset or Docker access. Tests invoke the installed production `dev` wrapper,
+use isolated homes/workspaces and private tmux sockets, and preserve terminal
+transcripts on failures. Python package versions are pinned; the Ubuntu base
+tag and apt package resolution remain unpinned inputs.
+
+See [launcher contracts and feature handoff](docs/milestone-1.md) for APIs, test
+registration, and manual verification boundaries.
 
 ### Known Issues
 

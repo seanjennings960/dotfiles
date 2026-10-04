@@ -1,0 +1,4 @@
+# Launcher and editable-build dependencies. Provision only during explicit setup.
+click==8.3.3
+setuptools==80.9.0
+wheel==0.45.1

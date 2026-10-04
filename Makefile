@@ -1,16 +1,19 @@
-TEST_PYTHON ?= /opt/dotfiles/test-venv/bin/python
+LAUNCHER_PYTHON ?= $(HOME)/.local/share/dotfiles/launcher/bin/python
 
-.PHONY: test test-python lint
-test: lint test-python
+.PHONY: launcher-env test test-env lint
+launcher-env:
+	bash .devcontainer/setup-launcher.sh
+
+test:
+	$(LAUNCHER_PYTHON) -I -m dotfiles_dev test $(PYTEST_ARGS)
+
+# Explicit setup may download locked dependencies. Entry and test never install.
+test-env:
+	$(LAUNCHER_PYTHON) -I -m dotfiles_dev.testing --setup
 
 lint:
-	bash -n install.sh infectdots.sh bashrc bash_aliases tmux/tmux_neww.sh .devcontainer/install-toolchain.sh
-	zsh -n zshrc
-	shellcheck .devcontainer/install-toolchain.sh
-	ruff check tests
+	bash -n .devcontainer/setup-launcher.sh
+	shellcheck .devcontainer/setup-launcher.sh
 
-test-python:
-	$(TEST_PYTHON) -m pytest $(PYTEST_ARGS)
-
-# Each workflow step owns its additional lint checks alongside its tests.
+# Feature PRs can retain optional additional lint targets here.
 -include $(wildcard tests/lint/*.mk)

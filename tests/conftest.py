@@ -3,7 +3,9 @@
 import io
 import os
 import signal
+import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -41,8 +43,8 @@ def env(home):
         "XDG_CACHE_HOME": str(home / ".cache"),
         "PATH": "/usr/local/bin:/usr/bin:/bin",
         "TERM": "xterm-256color",
-        "LANG": "C.UTF-8",
-        "LC_ALL": "C.UTF-8",
+        "LANG": "en_US.UTF-8" if sys.platform == "darwin" else "C.UTF-8",
+        "LC_ALL": "en_US.UTF-8" if sys.platform == "darwin" else "C.UTF-8",
     }
 
 
@@ -105,6 +107,8 @@ def terminal(env, workspace, tmp_path):
 
 @pytest.fixture
 def tmux_server(env, run):
+    if shutil.which("tmux", path=env["PATH"]) is None:
+        pytest.fail("Missing integration prerequisite: tmux. Install it explicitly.")
     # A short, private socket path also works with Unix socket path length limits.
     with tempfile.TemporaryDirectory(prefix="dots-tmux-") as directory:
         socket = str(Path(directory) / "socket")
@@ -115,3 +119,11 @@ def tmux_server(env, run):
         tmux.socket = socket
         yield tmux
         tmux("kill-server", check=False)
+
+
+@pytest.fixture
+def launcher(repo_root, env):
+    env["PYTHONPATH"] = str(repo_root)
+    executable = Path(os.environ.get("DOTFILES_LAUNCHER", Path.home() / ".local/bin/dev"))
+    assert executable.is_file(), "Run explicit launcher setup before production CLI tests"
+    return [str(executable)]
