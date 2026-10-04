@@ -3,12 +3,16 @@
 import json
 import signal
 import sys
+import time
 from pathlib import Path
 
+import click
 import pexpect
 import pytest
 
 from dotfiles_dev import testing
+from dotfiles_dev.host import ENVIRONMENT_OPTION, WORKSPACE_OPTION, Host
+from dotfiles_dev.workspace import Workspace
 
 
 def git(run, workspace, *args):
@@ -154,6 +158,102 @@ def test_container_context_cannot_execute(run, launcher, env):
     assert result.returncode != 0
     assert "Unsupported environment" in result.stderr
     assert not result.stdout
+
+
+def test_entry_requires_terminal(run, launcher, tmux_server, env):
+    env["DOTFILES_TMUX_SOCKET"] = tmux_server.socket
+    result = run(launcher, check=False)
+    assert "interactive terminal" in result.stderr
+    assert tmux_server("list-sessions", check=False).returncode != 0
+
+
+def test_missing_tmux_reports_without_install(run, launcher, env):
+    env["PATH"] = "/nonexistent"
+    result = run([*launcher, "--workspace", ".", "env", "enter", "host"], check=False)
+    assert "Missing tool: tmux" in result.stderr
+
+
+def test_tmux_inspection_failure_stops_entry(terminal, launcher, workspace, env):
+    binary = workspace / "tmux"
+    binary.write_text("#!/bin/sh\necho 'tmux inspection denied' >&2\nexit 1\n")
+    binary.chmod(0o755)
+    env["PATH"] = f"{workspace}:{env['PATH']}"
+    child = terminal(launcher[0], ["--workspace", workspace, "env", "enter", "host"])
+    child.expect_exact("tmux inspection denied")
+    child.expect(pexpect.EOF)
+    child.close()
+    assert child.exitstatus == 1
+
+
+def test_reconnect_discovers_metadata_and_keeps_directory(tmux_server, workspace, env, monkeypatch):
+    monkeypatch.setenv("DOTFILES_TMUX_SOCKET", tmux_server.socket)
+    tmux_server("-f", "/dev/null", "new-session", "-d", "-s", "renamed", "-c", str(workspace), "sleep 60")
+    tmux_server("set-option", "-t", "renamed", WORKSPACE_OPTION, str(workspace.resolve()))
+    tmux_server("set-option", "-t", "renamed", ENVIRONMENT_OPTION, "host")
+    before = tmux_server("list-panes", "-t", "renamed", "-F", "#{pane_pid}:#{pane_current_path}").stdout
+    session = Host().ensure(Workspace(workspace.resolve(), workspace.parent.resolve()))
+    assert session.startswith("$")
+    assert before == tmux_server("list-panes", "-t", "renamed", "-F", "#{pane_pid}:#{pane_current_path}").stdout
+    assert tmux_server("list-sessions").stdout.count("\n") == 1
+
+
+def test_host_sessions_distinguish_workspaces(tmux_server, workspace, tmp_path, monkeypatch):
+    monkeypatch.setenv("DOTFILES_TMUX_SOCKET", tmux_server.socket)
+    first = Host().ensure(Workspace(workspace.resolve(), workspace.resolve()))
+    other = tmp_path / "other"
+    other.mkdir()
+    second = Host().ensure(Workspace(other.resolve(), other.resolve()))
+    assert first != second
+    assert Host().find(Workspace(workspace.resolve(), workspace.resolve())) == first
+
+
+def test_session_collision_does_not_adopt_container(tmux_server, workspace, monkeypatch):
+    monkeypatch.setenv("DOTFILES_TMUX_SOCKET", tmux_server.socket)
+    context = Workspace(workspace.resolve(), workspace.resolve())
+    session = Host().ensure(context)
+    tmux_server("set-option", "-t", session, ENVIRONMENT_OPTION, "container")
+    with pytest.raises(click.ClickException, match="duplicate session"):
+        Host().ensure(context)
+    assert tmux_server("show-options", "-qv", "-t", session, ENVIRONMENT_OPTION).stdout.strip() == "container"
+
+
+def test_exiting_one_shell_keeps_other_panes(tmux_server, workspace, monkeypatch):
+    monkeypatch.setenv("DOTFILES_TMUX_SOCKET", tmux_server.socket)
+    session = Host().ensure(Workspace(workspace.resolve(), workspace.resolve()))
+    tmux_server("split-window", "-d", "-t", session, "sleep 60")
+    tmux_server("send-keys", "-t", session + ":0.0", "exit", "Enter")
+    # Ask tmux to wait for the shell exit rather than assuming a scheduling delay.
+    for _ in range(100):
+        panes = tmux_server("list-panes", "-t", session, "-F", "#{pane_current_command}").stdout.splitlines()
+        if panes == ["sleep"]:
+            break
+        time.sleep(0.01)
+    assert panes == ["sleep"]
+    assert Host().find(Workspace(workspace.resolve(), workspace.resolve())) == session
+
+
+def test_fresh_launcher_attaches_detaches_and_reconnects(terminal, launcher, tmux_server, env, workspace):
+    env["DOTFILES_TMUX_SOCKET"] = tmux_server.socket
+    # Start the server without user config, then let production entry create its session.
+    tmux_server("-f", "/dev/null", "new-session", "-d", "-s", "fixture", "sleep 60")
+    previous = None
+    for command in ([], ["env", "enter", "host"]):
+        child = terminal(launcher[0], [*launcher[1:], *command])
+        # Wait for entry, then inspect the actual persistent session independently.
+        child.expect(r"\[dev-host-")
+        sessions = tmux_server("list-sessions", "-F", "#{session_id}").stdout.splitlines()
+        managed = [session for session in sessions if tmux_server(
+            "show-options", "-qv", "-t", session, WORKSPACE_OPTION).stdout.strip() == str(workspace.resolve())]
+        assert len(managed) == 1
+        current = tmux_server("list-panes", "-t", managed[0], "-F", "#{pane_pid}").stdout
+        if command:
+            assert current == previous
+        previous = current
+        child.sendcontrol("b")
+        child.send("d")
+        child.expect(pexpect.EOF)
+        child.close()
+        assert child.exitstatus == 0
 
 
 def test_test_runner_missing_environment(run, launcher, env):
