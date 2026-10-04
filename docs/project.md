@@ -19,11 +19,13 @@ and an Ubuntu 24.04 devcontainer. The launcher and Feature below are planned.
 
 ## Approach
 
-Build the host launcher first, then deliver the personal tools and integrations
-through it. Use Python and Click with a Homebrew-managed Python runtime, separate
-from project environments. Start with human host work on macOS; add container
-entry after the local workflow works. The first container target is Ubuntu 24.04
-on `linux/arm64`.
+Build the launcher first, then deliver the personal tools and integrations
+through it. Use Python and Click with a runtime environment separate from project
+environments. Initially develop and verify in this repository's Ubuntu 24.04
+`linux/arm64` devcontainer with Python 3.12 as the non-root `vscode` user. Host
+mode there means the container running the launcher. macOS installation,
+Homebrew packaging, and macOS installer adapters follow in a future PR. Add
+managed container entry after the initial workflow works.
 
 The [architecture](architecture.md) defines the workspace, environment, and
 personal toolset contracts. This plan defines the delivery steps. Keep personal
@@ -43,9 +45,10 @@ Update the README as each command becomes available.
 
 ### 1. PR #14: host launcher and barebones `dev test`
 
-- Add the Python launcher with Click commands and Homebrew installation. Give it
-  its own runtime and report missing personal tools without installing them during
-  entry. An active project virtual environment must not affect the launcher.
+- Add the Python launcher with Click commands and explicit devcontainer setup.
+  Give it its own runtime environment and report missing personal tools without
+  installing them during entry. An active project virtual environment must not
+  affect the launcher.
 - Discover the enclosing Git worktree, treating each worktree as a distinct
   workspace. Support an explicit workspace path and invocation outside a project.
   Preserve the invocation directory when it is inside the workspace.
@@ -66,18 +69,20 @@ dev exec <command>          Run a command in the current environment
 dev test [<test args>]      Run this repository's automated checks
 ```
 
-Done when I can install with `brew install dotfiles`, enter host work without
-Docker, reconnect from a fresh launcher, and inspect the workspace and directory
-actually used. `dev test` covers discovery, command forwarding, reconnection, and
-failure reporting on native macOS. Unsupported container requests fail without
-executing on the host.
+Done when explicit setup in the Ubuntu devcontainer makes production `dev test`
+work as non-root `vscode`, I can reconnect from a fresh launcher, and inspection
+reports the workspace and directory actually used. `dev test` covers discovery,
+command forwarding, terminal behavior, reconnection, and failure reporting on
+Linux ARM64. Unsupported managed-container requests fail without executing in
+host mode. Docker builds the development environment; entry and the runner do
+not require Docker access or the full personal toolset.
 
 ### 2. PR #15: personal tool management and repeatable activation
 
 - Rework activation around `dev tools`, `dev tools install`, `dev tools upgrade`,
   and `dev tools remove`. Store exact personal selections outside projects and
-  keep installation separate from environment entry. Use macOS installers first
-  and Ubuntu adapters for the container target.
+  keep installation separate from environment entry. Use Ubuntu installers first;
+  macOS adapters and launcher installation follow in a future PR.
 - Record installation ownership and report unavailable versions, conflicts, and
   individual failures. Upgrades record the new selection; removal affects only
   personally managed installations and retains dependencies needed by other tools.
