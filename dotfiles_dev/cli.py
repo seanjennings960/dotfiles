@@ -1,10 +1,13 @@
 """Click command registration for host work and repository checks."""
 
+import subprocess
+
 import click
 
-from . import testing
+from . import activation, testing
 from .host import Host, environment
 from .process import replace
+from .source import source_root
 from .workspace import Workspace
 
 
@@ -61,6 +64,16 @@ def execute(workspace, command):
 def test(args):
     """Run this repository's pytest suite with forwarded ARGS."""
     testing.run(args)
+
+
+@cli.command()
+def activate():
+    """Activate personal defaults offline, preserving existing configuration."""
+    try:
+        activation.activate(source_root())
+    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+        raise click.ClickException(f"Activation failed: {error}") from error
+    click.echo("Dotfiles activated. Start a fresh shell to load the startup hooks.")
 
 
 def main():
