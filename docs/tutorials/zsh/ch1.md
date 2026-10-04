@@ -1,269 +1,142 @@
-# Chapter 1: Basic Zsh
+# Chapter 1: Zsh in four concepts
 
 [Book contents](intro-to-zsh.md)
 
-Zsh is a shell: it reads your commands, runs programs, and lets you combine them. It's the default shell on modern macOS.
+Zsh interprets commands and runs programs. Start a session without your usual startup files:
 
-Here's a hands-on introduction. Type commands into your terminal and press **Enter**. If your prompt ends in `%` or `$`, don't type that symbol.
-
-## 1. Move around directories
-
-Your shell always has a **current directory**. Commands often operate on files in that directory.
-
-```zsh
-pwd
+```sh
+zsh -f
 ```
 
-Prints the current directory's full path.
+Zsh comes with modern macOS and this repo's devcontainer. Run each line below in that shell. Omit any `%` or `$` prompt prefix; `exit` returns to your previous shell.
 
-```zsh
-ls
-```
+## 1. Context
 
-Lists what's inside it. You can add options:
-
-```zsh
-ls -l
-```
-
-Shows details such as permissions, size, and modification time.
-
-```zsh
-ls -a
-```
-
-Includes hidden files, whose names start with a dot.
-
-Use `cd` to change directories:
-
-```zsh
-cd Documents
-```
-
-Some useful shortcuts:
-
-| Command | Meaning |
-|---|---|
-| `cd ..` | Move to the parent directory |
-| `cd ~` | Move to your home directory |
-| `cd` | Also move to your home directory |
-| `cd -` | Return to your previous directory |
-
-A path starting with `/` is an **absolute path**, such as `/Users/sam/Documents`. A path without a leading `/` is usually relative to your current directory.
-
-## 2. Create a practice directory
-
-Run:
+Commands use a working directory and environment. Create a practice directory, choosing an unused name:
 
 ```zsh
 cd ~
 mkdir zsh-practice
 cd zsh-practice
+pwd
+ls -la
 ```
 
-`mkdir` creates a directory. You're now working inside `zsh-practice`.
+`cd` changes directory, `mkdir` creates one, and `pwd` prints its path. `ls -la` lists details, including hidden files.
 
-Create an empty file:
+Absolute paths start with `/`; relative paths start from the current directory. `~` means home, `..` means parent, and `cd -` returns to the previous directory.
 
-```zsh
-touch notes.txt
-ls
-```
-
-Copy and rename it:
-
-```zsh
-cp notes.txt backup.txt
-mv backup.txt old-notes.txt
-ls
-```
-
-- `cp` copies a file.
-- `mv` moves or renames it.
-- `rm` removes it.
-
-To remove the practice copy:
-
-```zsh
-rm old-notes.txt
-```
-
-`rm` deletes directly rather than moving files to the Trash.
-
-## 3. Understand commands and arguments
-
-A typical command looks like:
-
-```text
-command option argument
-```
-
-For example:
-
-```zsh
-ls -l notes.txt
-```
-
-- `ls` is the command.
-- `-l` is an option that changes its behavior.
-- `notes.txt` is the file to operate on.
-
-Spaces separate arguments. To keep a filename containing spaces together, quote it:
-
-```zsh
-touch "my notes.txt"
-ls -l "my notes.txt"
-```
-
-Without quotes, `my notes.txt` would be two arguments.
-
-## 4. Use completion and history
-
-These make everyday shell use much easier:
-
-- **Tab** completes commands and filenames. Type `ls no` and press Tab to complete `notes.txt`.
-- **Up arrow** recalls previous commands.
-- **Ctrl+R** searches your command history. Type part of a previous command.
-- **Ctrl+A** moves to the beginning of the command line.
-- **Ctrl+E** moves to the end.
-- **Ctrl+C** cancels the current command or usually stops the running program.
-
-## 5. Use variables and quotes
-
-Assign a variable with no spaces around `=`:
-
-```zsh
-name="Sam"
-```
-
-Read its value with `$name`:
-
-```zsh
-echo "$name"
-```
-
-`echo` prints its arguments.
-
-Double quotes allow variable expansion:
-
-```zsh
-echo "Hello, $name"
-```
-
-Output:
-
-```text
-Hello, Sam
-```
-
-Single quotes keep the text literal:
-
-```zsh
-echo 'Hello, $name'
-```
-
-Output:
-
-```text
-Hello, $name
-```
-
-Some variables already exist:
+Variables hold values. `HOME` names your home directory; `PATH` lists executable search directories. `$` reads a variable; `export` passes it to child programs:
 
 ```zsh
 echo "$HOME"
 echo "$PATH"
-```
-
-`HOME` is your home directory. `PATH` lists directories where the shell searches for programs.
-
-To make a variable available to programs you launch, export it:
-
-```zsh
+command -v zsh
 export MY_SETTING="enabled"
 ```
 
-A Python program launched from that shell can then read it through `os.environ`.
+`echo` prints its arguments. `command -v` shows how a command name resolves.
 
-## 6. Match filenames with wildcards
+## 2. Arguments
+
+Spaces separate arguments; quotes keep them together:
+
+```zsh
+touch notes.txt "my notes.txt"
+ls -l "my notes.txt"
+```
+
+`touch` creates missing files. The second command runs `ls` with option `-l` and one filename argument.
+
+`cp` copies, `mv` moves or renames, and `rm` deletes without using the Trash:
+
+```zsh
+cp notes.txt backup.txt
+mv backup.txt old-notes.txt
+rm old-notes.txt
+```
+
+Assignments have no spaces around `=`. Double quotes allow expansion; single quotes preserve literal text:
+
+```zsh
+name="Sam"
+echo "Hello, $name"
+echo 'Hello, $name'
+```
+
+The two outputs are `Hello, Sam` and `Hello, $name`.
+
+Wildcards also construct arguments:
 
 ```zsh
 ls *.txt
-```
-
-Zsh expands `*.txt` into matching filenames before running `ls`.
-
-Common patterns:
-
-| Pattern | Matches |
-|---|---|
-| `*.txt` | Names ending in `.txt` |
-| `notes*` | Names starting with `notes` |
-| `file?.txt` | Names such as `file1.txt` or `fileA.txt` |
-
-By default, Zsh reports `no matches found` if a wildcard matches nothing.
-
-Quoting prevents expansion:
-
-```zsh
 echo "*.txt"
 ```
 
-That prints the literal text `*.txt`.
+Unquoted `*.txt` becomes matching filenames before `ls` runs; quoted `"*.txt"` stays literal. `*` matches any sequence of characters within a filename; `?` matches one. By default, globbing excludes leading dots and errors if nothing matches.
 
-## 7. Redirect output and connect commands
+## 3. Execution
 
-Create a file containing a few lines:
+Programs have input, output, and error streams. A pipe connects one program's standard output to another's standard input:
 
 ```zsh
 printf 'pear\napple\nbanana\n' > fruit.txt
-```
-
-`printf` prints formatted text. Here, `\n` means a newline, and `>` sends the output into a file.
-
-Read it:
-
-```zsh
 cat fruit.txt
+sort fruit.txt | wc -l
 ```
 
-Sort its contents:
+`printf` turns `\n` into newlines; `cat` displays the file. `sort` orders lines, and `wc -l` counts them, giving `3`.
 
-```zsh
-sort fruit.txt
-```
-
-Save the sorted result:
+| Operator | Effect |
+| --- | --- |
+| `> file` | Write standard output to a file, creating or overwriting it. |
+| `>> file` | Append standard output to a file. |
+| `< file` | Read standard input from a file. |
+| `2> file` | Write standard error to a file. |
 
 ```zsh
 sort fruit.txt > sorted-fruit.txt
+printf 'orange\n' >> fruit.txt
+wc -l < fruit.txt
 ```
 
-- `>` creates a file or overwrites its existing contents.
-- `>>` appends to a file.
-
-A **pipe**, written `|`, sends one command's output into another command's input:
+The count is now `4`. Exit status is separate from output. Zero means success; a nonzero status indicates failure. `$?` reads the most recent status:
 
 ```zsh
-cat fruit.txt | sort
+false
+echo "$?"
+false | true
+echo "$?"
 ```
 
-For this example, `sort fruit.txt` is simpler. Pipes become useful when you combine several operations:
+`false` fails and `true` succeeds. These print `1` then `0`. By default, a pipeline reports only its last command's status.
+
+## 4. Interaction
+
+Use Emacs-style line-editor bindings so these shortcuts behave consistently:
 
 ```zsh
-cat fruit.txt | sort | wc -l
+bindkey -e
 ```
 
-`wc -l` counts lines, so this prints `3`.
+| Key | Action |
+| --- | --- |
+| Tab | Complete a command or filename. Try `ls no` to complete `notes.txt`. |
+| Up arrow | Recall a previous command. |
+| Ctrl+R | Search command history as you type. |
+| Ctrl+A / Ctrl+E | Move to the beginning or end of the line. |
+| Ctrl+C | Cancel the current input or usually interrupt a running program. |
 
 ## Try it yourself
 
-Inside your practice directory:
+Copy `fruit.txt` to `shopping list.txt`, append `grape`, and predict the new line count. Use history to recall the counting command.
 
-1. Create a file called `shopping list.txt`.
-2. List all `.txt` files.
-3. Copy `fruit.txt` to `fruit-backup.txt`.
-4. Append `orange` as another line in `fruit.txt`.
-5. Count the lines in `fruit.txt`.
+### Worked solution
 
-The key idea is that **Zsh interprets your command first**. It handles quotes, variables, wildcards, pipes, and redirection, then runs the programs with the resulting arguments.
+```zsh
+cp fruit.txt "shopping list.txt"
+printf 'grape\n' >> "shopping list.txt"
+wc -l < "shopping list.txt"
+```
+
+Expect `5`. Quotes preserve filename spaces. `<` opens the file as input, so `wc` receives only `-l` as an argument.
