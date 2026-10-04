@@ -1,6 +1,6 @@
 # Chapter 1: Zsh in four concepts
 
-[Book contents](intro-to-zsh.md)
+[Book contents](intro-to-zsh.md) | [Next: Context](ch2.md) | [Companion](companion/README.md)
 
 Zsh interprets commands and runs programs. Start a session without your usual startup files:
 

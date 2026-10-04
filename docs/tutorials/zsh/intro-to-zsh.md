@@ -24,15 +24,25 @@ Quoting and globbing belong together because both affect arguments. Scripts and 
 
 ## Reading path
 
-Start with [Chapter 1: Zsh in four concepts](ch1.md), a hands-on introduction that assumes no shell experience. The remaining chapters deepen the same concepts. Chapters 2 through 5 are planned.
+Start with [Chapter 1: Zsh in four concepts](ch1.md), a hands-on introduction that assumes no shell experience. The remaining chapters deepen the same concepts, each in a disposable practice shell.
 
-| Planned chapter | Deeper study |
+| Chapter | Deeper study |
 | --- | --- |
-| 2. Context, `ch2.md` | Startup modes and files; command lookup and project `PATH` precedence; exported and local state; sourcing versus execution; subshells and localized options; autoloading. |
-| 3. Arguments, `ch3.md` | Quoting and expansion; arrays and precise globbing; positional arguments and option parsing; preserving unusual filenames with arrays or null-delimited streams. |
-| 4. Execution, `ch4.md` | Streams and process substitution; scripts, functions, and control flow; pipeline status and explicit error handling; jobs, signals, and cleanup; syntax checks and tracing. |
-| 5. Interaction, `ch5.md` | History and keymaps; completion functions and line-editor widgets; prompts and hooks; profiling startup and interactive costs. |
+| [2. Context](ch2.md) | Startup modes and files; command lookup and project `PATH` precedence; exported and local state; sourcing versus execution; subshells and localized options; autoloading. |
+| [3. Arguments](ch3.md) | Quoting and expansion; arrays and precise globbing; positional arguments and option parsing; preserving unusual filenames with arrays or null-delimited streams. |
+| [4. Execution](ch4.md) | Streams and process substitution; scripts, functions, and control flow; pipeline status and explicit error handling; jobs, signals, and cleanup; syntax checks and tracing. |
+| [5. Interaction](ch5.md) | History and keymaps; completion functions and line-editor widgets; prompts and hooks; profiling startup and interactive costs. |
 
-Develop one workspace function across these chapters to register, list, and select project directories. Selection must change the calling shell's directory. Add validation and reliable state updates before completion and a line-editor widget. Test failures and unusual paths. Keep the tool small enough to understand in full.
+The chapters use one [workspace function](examples/README.md) to register, list, and select project directories. Selection changes the calling shell's directory. Read its argument validation and record updates before adding completion and a line-editor widget. Test failures and unusual paths. The tool is small enough to read in full.
 
 Each chapter includes runnable examples and an exercise with a worked solution. Use disposable files and identify shell-option and platform differences. For an agent-proposed command, use the four questions to explain its behavior, then verify that explanation in the actual environment.
+
+## Terminal companion
+
+Read the chapters and run fixed demonstrations in the [companion TUI](companion/README.md). From the repository root:
+
+```sh
+python3 docs/tutorials/zsh/companion/tui.py
+```
+
+Use `1` through `5` to select chapters, arrow keys to scroll, `d` to inspect a demonstration, and `q` to quit. Each demo shows its Zsh source, output, and status in a disposable environment. Python 3.9+ and Zsh are the only dependencies. The reader uses Python's standard-library curses module.
