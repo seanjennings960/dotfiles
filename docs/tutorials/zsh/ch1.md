@@ -1,4 +1,6 @@
-# Basic Zsh
+# Chapter 1: Basic Zsh
+
+[Book contents](intro-to-zsh.md)
 
 Zsh is a shell: it reads your commands, runs programs, and lets you combine them. It's the default shell on modern macOS.
 
