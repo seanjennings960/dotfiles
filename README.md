@@ -255,6 +255,21 @@ still affect interactive startup. Personal activation and bindings follow later.
 `dev exec` preserves arguments, stdin/stdout/stderr, terminal, signals and status.
 Container entry, container context, and rebuild fail without executing on the host.
 
+## Chat history
+
+```sh
+dev chats                         # recent OpenCode sessions across all projects
+dev chats list --here              # sessions in the selected worktree
+dev chats search 'some phrase'     # search titles and message parts
+dev chats show ses_abc             # read a session by ID or unique prefix
+dev chats show ses_abc --json       # export complete stored records
+```
+
+Requires OpenCode on PATH with `opencode db` support. History comes from the
+current user's OpenCode database, including child and archived sessions.
+See [chat history](docs/chats.md) for pagination, full tool/reasoning output,
+workspace filtering, and the JSON interface.
+
 ## Repository tests
 
 Creation setup provisions the locked test environment. Inside the devcontainer,
