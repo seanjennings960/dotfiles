@@ -6,6 +6,7 @@ from .host import Host, environment
 from .process import replace
 from .workspace import Workspace
 from . import testing
+from .chats import chats
 
 
 @click.group(invoke_without_command=True)
@@ -61,6 +62,9 @@ def execute(workspace, command):
 def test(args):
     """Run this repository's pytest suite with forwarded ARGS."""
     testing.run(args)
+
+
+cli.add_command(chats)
 
 
 def main():
