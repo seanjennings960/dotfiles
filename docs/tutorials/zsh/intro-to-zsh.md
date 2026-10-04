@@ -1,48 +1,67 @@
 # Intro to Zsh
 
-This book starts with the [repository's goal](../../project.md#goal):
+Open a terminal and type:
+
+```sh
+pwd
+```
+
+You have asked the computer which directory you are in. It prints a path and waits for your next command.
+
+That is where this book starts. We will move between directories, make a few files, and learn how to give commands the information they need. Then we will put commands together and save work we want to repeat.
+
+Zsh is the shell we will use. A shell reads commands and runs them. It also handles things such as quotes and wildcards before a program sees its arguments. You do not need to know those rules yet. We will meet them through examples.
+
+## Why this book is here
+
+The [repository's roadmap](../../project.md#goal) says:
 
 > I want to explore, understand, and edit agent-generated code, rather than let
 > coding speed outstrip my understanding of it.
 
-Shell fluency lets you investigate an agent's work. The same command text can invoke a different Python through `PATH`; a pipeline can report success after an earlier step failed. You need to understand the execution to judge the result.
+An agent may suggest a command to run your tests or find some files. Knowing the shell lets you read that command and check what it did. When it does something useful, you can keep it in a script and run it again yourself.
 
-In this repo's [terminal-first workspace](../../architecture.md#components), Zsh offers programmable completion and command-line editing. Understanding it lets you turn agent-generated operations into tested scripts and make deliberate choices about [`zshrc`](../../../zshrc). The aim is to retain authorship as agents generate more code.
+This repo also contains a personal [`zshrc`](../../../zshrc). By the end of the book, settings in files like this should be things you can explain and change. Completion, history, and small functions become more useful when you understand how they work.
 
-The roadmap starts with Bash and evaluates Zsh. Agents and CI may use other shells or invoke programs directly; a noninteractive Zsh normally skips `.zshrc`. We will distinguish Zsh-specific behavior from portable ideas and interactive conveniences from script dependencies.
+The roadmap starts with Bash and evaluates Zsh. Your agent or test system may use a different shell. We will point out where that matters, rather than assume every command runs in your usual terminal.
 
-## Four concepts
+## How to read the book
 
-| Concept | Question |
+Start with [Chapter 1: Basic Zsh](ch1.md). Type the examples in order and compare the results with the text. Most examples work on files you create for practice. Each chapter ends with an exercise and a worked solution.
+
+| Chapter | What you will do |
 | --- | --- |
-| Context | Where does a command run, and what state does it use? |
-| Arguments | What exact words reach the command? |
-| Execution | How does work run, connect, and finish? |
-| Interaction | How do you enter commands and inspect shell state? |
+| [1. Basic Zsh](ch1.md) | Move around, create files, and run your first commands. |
+| [2. Where commands run](ch2.md) | Find out why the same command can behave differently in another shell or directory. |
+| [3. Giving commands arguments](ch3.md) | Pass names and values without accidentally changing them. |
+| [4. Putting commands together](ch4.md) | Write a script and decide what it should do when a step fails. |
+| [5. Working at the prompt](ch5.md) | Recall commands, complete names, and make the prompt show useful information. |
 
-Quoting and globbing belong together because both affect arguments. Scripts and functions package execution. Completion helps you construct a command; it does not change the command's requirements. Debugging and testing apply to all four concepts.
+Chapters 2 through 5 begin at the repository root, the directory containing `README.md` and `zshrc`. Each starts a new practice shell and makes a temporary directory. The instructions at the end remove that directory and return to your previous shell.
 
-## Reading path
+We will use a small [workspace function](examples/README.md) that remembers project directories by name. First you will use it. Later you will have the tools to read its implementation and add completion for it.
 
-Start with [Chapter 1: Zsh in four concepts](ch1.md), a hands-on introduction that assumes no shell experience. The remaining chapters deepen the same concepts, each in a disposable practice shell.
+## Four questions to come back to
 
-| Chapter | Deeper study |
+The book keeps returning to four questions. These are names for things you will observe, not definitions to memorize before starting.
+
+| Idea | Question |
 | --- | --- |
-| [2. Context](ch2.md) | Startup modes and files; command lookup and project `PATH` precedence; exported and local state; sourcing versus execution; subshells and localized options; autoloading. |
-| [3. Arguments](ch3.md) | Quoting and expansion; arrays and precise globbing; positional arguments and option parsing; preserving unusual filenames with arrays or null-delimited streams. |
-| [4. Execution](ch4.md) | Streams and process substitution; scripts, functions, and control flow; pipeline status and explicit error handling; jobs, signals, and cleanup; syntax checks and tracing. |
-| [5. Interaction](ch5.md) | History and keymaps; completion functions and line-editor widgets; prompts and hooks; profiling startup and interactive costs. |
+| Context | Where is this command running, and which settings does it use? |
+| Arguments | What information does the command receive? |
+| Execution | How do commands pass results to each other, and what happens if one fails? |
+| Interaction | How can the shell help you enter commands and see what happened? |
 
-The chapters use one [workspace function](examples/README.md) to register, list, and select project directories. Selection changes the calling shell's directory. Read its argument validation and record updates before adding completion and a line-editor widget. Test failures and unusual paths. The tool is small enough to read in full.
-
-Each chapter includes runnable examples and an exercise with a worked solution. Use disposable files and identify shell-option and platform differences. For an agent-proposed command, use the four questions to explain its behavior, then verify that explanation in the actual environment.
+When a command surprises you, use these questions to decide what to inspect next.
 
 ## Terminal companion
 
-Read the chapters and run fixed demonstrations in the [companion TUI](companion/README.md). From the repository root:
+You can also read the book in a [small terminal application](companion/README.md). From the repository root, run:
 
 ```sh
 python3 docs/tutorials/zsh/companion/tui.py
 ```
 
-Use `1` through `5` to select chapters, arrow keys to scroll, `d` to inspect a demonstration, and `q` to quit. Each demo shows its Zsh source, output, and status in a disposable environment. Python 3.9+ and Zsh are the only dependencies. The reader uses Python's standard-library curses module.
+Press `1` through `5` to choose a chapter, Up or Down to scroll, and `q` to quit. Press `d` to run a short demonstration and see its commands beside the results. The demonstrations use temporary directories.
+
+The application needs Python 3.9+ with its standard-library curses module. Its demonstrations also need Zsh. You can read the Markdown files and work through the book without the application.

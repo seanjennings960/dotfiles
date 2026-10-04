@@ -1,9 +1,12 @@
 # Zsh tutorial companion
 
-This small terminal reader loads the five authored chapters, `ch1.md` through
-`ch5.md`, beside this directory. It displays plain Markdown with line wrapping.
-It reads those chapters as text and never executes their snippets. The four demos
-are fixed programs in `tui.py`. Chapter 1 uses the context demo.
+Read a chapter in your terminal, then run a short demonstration to see commands
+and their results together. The reader opens `ch1.md` through `ch5.md` beside this
+directory and displays their Markdown as text.
+
+Press `d` for a demonstration. It runs a fixed program from `tui.py`, not the
+chapter's code blocks. Chapter 1 uses the context demo. Work through the chapter
+examples in a separate shell when you want to try them yourself.
 
 ## Run
 
@@ -13,6 +16,9 @@ From the repository root:
 python3 docs/tutorials/zsh/companion/tui.py
 python3 docs/tutorials/zsh/companion/tui.py --help
 ```
+
+The reader opens Chapter 1. Press `2` to read the next chapter, Up or Down to
+scroll, and `q` to leave. The complete key list is below.
 
 Use Python 3.9 or newer on macOS or Linux. The reader needs Python's
 standard-library `curses` module and a terminal on both stdin and stdout, with a

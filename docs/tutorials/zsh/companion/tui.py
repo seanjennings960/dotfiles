@@ -22,7 +22,7 @@ except ImportError:
 
 CHAPTER_DIR = Path(__file__).resolve().parent.parent
 CHAPTERS = (
-    ("ch1.md", "Overview", "context"),
+    ("ch1.md", "Basics", "context"),
     ("ch2.md", "Context", "context"),
     ("ch3.md", "Arguments", "arguments"),
     ("ch4.md", "Execution", "execution"),
@@ -267,7 +267,7 @@ def draw(screen, reader: Reader, notice: str = ""):
         mode = "demo" if reader.demo else "chapter"
         write_line(screen, 0, f"Zsh tutorial | {reader.chapter + 1}. "
                    f"{CHAPTERS[reader.chapter][1]} | {mode}", curses.A_BOLD)
-        write_line(screen, 1, "1 Overview | 2 Context | 3 Arguments | 4 Execution | 5 Interaction")
+        write_line(screen, 1, "1 Basics | 2 Context | 3 Arguments | 4 Execution | 5 Interaction")
         for row, line in enumerate(lines[reader.offset:reader.offset + rows], 2):
             write_line(screen, row, line)
         write_line(screen, height - 2, notice or (
