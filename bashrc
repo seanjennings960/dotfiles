@@ -8,6 +8,12 @@ case $- in
       *) return;;
 esac
 
+# Activation installs helpers here; preserve project executable precedence.
+case :${PATH}: in
+    *:"$HOME/bin":*) ;;
+    *) export PATH="${PATH:+$PATH:}$HOME/bin" ;;
+esac
+
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
 HISTCONTROL=ignoreboth
