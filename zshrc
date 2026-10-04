@@ -1,8 +1,13 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+# Activation may load this from existing startup files more than once.
+[[ -o interactive && -z ${_DOTFILES_ZSH_LOADED:-} ]] || return
+_DOTFILES_ZSH_LOADED=1
+case :${PATH}: in
+    *:"$HOME/bin":*) ;;
+    *) export PATH="${PATH:+$PATH:}$HOME/bin" ;;
+esac
 
 # Path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
+export ZSH=${${(%):-%x}:A:h}/oh-my-zsh
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -23,8 +28,9 @@ ZSH_THEME="amuse"
 # sensitive completion must be off. _ and - will be interchangeable.
 # HYPHEN_INSENSITIVE="true"
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
+# Startup uses already installed plugins and never updates them.
+DISABLE_AUTO_UPDATE=true
+zstyle ':omz:update' mode disabled
 
 # Uncomment the following line to change how often to auto-update (in days).
 # export UPDATE_ZSH_DAYS=13
@@ -53,7 +59,7 @@ ZSH_THEME="amuse"
 
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
-ZSH_CUSTOM=~/dotfiles/zsh/plugins
+ZSH_CUSTOM=${ZSH:h}/zsh
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
@@ -61,7 +67,7 @@ ZSH_CUSTOM=~/dotfiles/zsh/plugins
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git zsh-autosuggestions)
 
-source $ZSH/oh-my-zsh.sh
+[[ ! -r $ZSH/oh-my-zsh.sh ]] || source "$ZSH/oh-my-zsh.sh"
 
 # User configuration
 
@@ -97,13 +103,11 @@ workfile=~/.zshrc.symbio
 if [ -f "$workfile" ]
 then
     # echo "$workfile found"
-    source $workfile
-else
-    echo "$workfile not found"
+    source "$workfile"
 fi
 
 # Spaceship theme
 # source "/home/$USER/.oh-my-zsh/custom/themes/spaceship.zsh-theme"
 
 # Autosuggestions highlighting
-source /opt/ros/kinetic/setup.zsh
+[[ ! -r /opt/ros/kinetic/setup.zsh ]] || source /opt/ros/kinetic/setup.zsh
