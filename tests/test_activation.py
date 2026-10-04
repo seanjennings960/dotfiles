@@ -1,9 +1,11 @@
 """Exercise production activation in isolated, non-root homes."""
 
+import json
 import os
 import shutil
 from pathlib import Path
 
+import pexpect
 import pytest
 
 
@@ -246,3 +248,119 @@ def test_invalid_xdg_override(run, repo_root, home, env, variable):
     env[variable] = "relative/path"
     assert activate(run, repo_root, check=False).returncode != 0
     assert list(home.iterdir()) == []
+
+
+def test_xdg_overrides_and_shell_escaping(run, repo_root, home, env, workspace):
+    for variable in ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME",
+                     "XDG_STATE_HOME", "XDG_CACHE_HOME"):
+        env[variable] = str(workspace / (variable + " space ' $ ` ;"))
+    Path(env["HOME"]).mkdir()
+    activate(run, repo_root)
+    config = Path(env["XDG_CONFIG_HOME"])
+    assert (config / "nvim").resolve() == repo_root / "nvim"
+    assert (Path(env["XDG_DATA_HOME"]) / "opencode").is_dir()
+    assert (Path(env["XDG_CACHE_HOME"]) / "opencode").is_dir()
+    # Check runtime fallback independently from the configured shell behavior.
+    sandbox = workspace / "shell home ' $ `"
+    sandbox.mkdir()
+    for name in (".bashrc", ".profile", ".zshrc"):
+        shutil.copyfile(Path(env["HOME"]) / name, sandbox / name)
+    snippets = sandbox / ".config/dotfiles"
+    snippets.mkdir(parents=True)
+    for name in ("bashrc", "zshrc"):
+        (snippets / name).write_text('printf "hook-loaded\\n"\n')
+    fallback = dict(env, HOME=str(sandbox))
+    fallback.pop("XDG_CONFIG_HOME")
+    for shell, name in (("bash", ".bashrc"), ("bash", ".profile"), ("zsh", ".zshrc")):
+        result = run([shell, "-c", '. "$HOME/' + name + '"'], env=fallback)
+        assert result.stdout == "hook-loaded\n"
+    override = workspace / "config space ' $ `"
+    shutil.copytree(sandbox / ".config", override)
+    for shell, name in (("bash", ".bashrc"), ("zsh", ".zshrc")):
+        result = run([shell, "-c", '. "$HOME/' + name + '"'],
+                     env=dict(fallback, XDG_CONFIG_HOME=str(override)))
+        assert result.stdout == "hook-loaded\n"
+    assert list(home.iterdir()) == []
+
+
+def test_rejects_repository_mutable_state(run, repo_root, env, home):
+    env["XDG_STATE_HOME"] = str(repo_root / "nvim")
+    result = activate(run, repo_root, check=False)
+    assert result.returncode != 0 and "repository" in result.stderr
+    assert list(home.iterdir()) == []
+
+
+def test_activation_uses_launcher_runtime(run, launcher, env, workspace):
+    (workspace / "click.py").write_text("raise RuntimeError('project import')")
+    env.update(PYTHONHOME="/missing/python", PYTHONPATH=str(workspace), VIRTUAL_ENV=str(workspace))
+    run([*launcher, "activate"])
+
+
+@pytest.mark.parametrize("script", ["install.sh", "infectdots.sh"])
+def test_wrappers_report_missing_setup(run, repo_root, env, home, script):
+    env.pop("DOTFILES_LAUNCHER")
+    result = run([repo_root / script], check=False)
+    assert result.returncode == 1
+    assert "make launcher-env" in result.stderr
+    assert list(home.iterdir()) == []
+
+
+def test_opencode_generated_state_survives_activation(run, repo_root, home):
+    before = snapshot(repo_root / "opencode")
+    activate(run, repo_root)
+    config = home / ".config/opencode"
+    (config / "package.json").write_text('{"private":true}\n')
+    (config / "node_modules").mkdir()
+    (config / "node_modules/personal-state").write_text("preserve")
+    activate(run, repo_root)
+    assert (config / "node_modules/personal-state").read_text() == "preserve"
+    assert snapshot(repo_root / "opencode") == before
+
+
+def test_opencode_config_and_pr_skill(run, repo_root, env, opencode_cli):
+    before = snapshot(repo_root / "opencode")
+    activate(run, repo_root)
+    env["OPENCODE_DISABLE_MODELS_FETCH"] = "true"
+    env["OPENCODE_DISABLE_EXTERNAL_SKILLS"] = "true"
+    env["OPENCODE_DISABLE_CLAUDE_CODE_SKILLS"] = "true"
+    result = run([opencode_cli, "debug", "config", "--pure"], timeout=60)
+    assert json.loads(result.stdout)["$schema"] == "https://opencode.ai/config.json"
+    paths = run([opencode_cli, "debug", "paths", "--pure"])
+    for variable in ("XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME", "XDG_CACHE_HOME"):
+        assert env[variable] in paths.stdout
+    skills = run([opencode_cli, "debug", "skill", "--pure"], timeout=60)
+    assert any(skill["name"] == "github-pr" for skill in json.loads(skills.stdout))
+    assert snapshot(repo_root / "opencode") == before
+
+
+@pytest.mark.parametrize("shell", ["bash", "zsh"])
+def test_activated_shell_loads_helpers_without_optional_tools(run, repo_root, home, shell):
+    activate(run, repo_root)
+    result = run([shell, "-ic", 'command -v tmux_neww; . "$HOME/.' + shell + 'rc"; '
+                  'printf "%s\\n" "$PATH"'])
+    assert str(home / "bin/tmux_neww") in result.stdout
+    assert result.stdout.splitlines()[-1].split(":").count(str(home / "bin")) == 1
+    assert "no such file" not in result.stderr.lower()
+
+
+def test_activate_then_enter_and_reconnect(run, launcher, terminal, tmux_server, env, workspace):
+    # Let the real server load the activated tmux.conf and the real shell hooks.
+    run([*launcher, "activate"])
+    env["DOTFILES_TMUX_SOCKET"] = tmux_server.socket
+    previous = None
+    for iteration in range(2):
+        child = terminal(launcher[0], [])
+        child.expect(r"\[dev-host-")
+        pid = tmux_server("list-panes", "-a", "-F", "#{pane_pid}").stdout
+        if iteration:
+            assert pid == previous
+        else:
+            child.sendline("command -v tmux_neww")
+            child.expect_exact(str(Path(env["HOME"]) / "bin/tmux_neww"))
+        previous = pid
+        assert tmux_server("show-options", "-v", "@dev_workspace").stdout.strip() == str(workspace)
+        child.sendcontrol("a")
+        child.send("d")
+        child.expect(pexpect.EOF)
+        child.close()
+        assert child.exitstatus == 0
