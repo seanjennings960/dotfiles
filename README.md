@@ -6,6 +6,15 @@ See the [roadmap](docs/project.md) for the planned terminal-first environment,
 Dev Container Feature, and host-side `dev` launcher, and the
 [architecture](docs/architecture.md) for how they fit together.
 
+The [Zsh tutorial](docs/tutorials/zsh/intro-to-zsh.md) starts with moving around
+directories and making files, then builds toward scripts and shell customization.
+Its [terminal companion](docs/tutorials/zsh/companion/README.md) reads the chapters
+and runs short demonstrations:
+
+```sh
+python3 docs/tutorials/zsh/companion/tui.py
+```
+
 Prerequisites:
 ```
 sudo apt-get install tmux
