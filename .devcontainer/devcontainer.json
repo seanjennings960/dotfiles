@@ -3,6 +3,10 @@
     "build": {
         "dockerfile": "Dockerfile"
     },
+    "initializeCommand": ["python3", "scripts/prepare_feature.py"],
+    "features": {
+        "./features/devtools": {}
+    },
     "remoteUser": "vscode",
     "customizations": {
         "vscode": {

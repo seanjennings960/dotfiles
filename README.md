@@ -2,9 +2,10 @@
 
 A collection of the dotfiles used on my work and home Linux machines.
 
-See the [roadmap](docs/project.md) for the planned terminal-first environment,
-Dev Container Feature, and host-side `dev` launcher, and the
-[architecture](docs/architecture.md) for how they fit together.
+See the [roadmap](docs/project.md) and [architecture](docs/architecture.md) for
+the terminal-first environment. The Python `dev` launcher and initial
+[personal devtools Feature](features/README.md) are available for local container
+development.
 
 Prerequisites:
 ```
@@ -175,14 +176,18 @@ cd ~/.vim/bundle/YouCompleteMe
 
 ## Development container
 
-The devcontainer provides Ubuntu 24.04 with Git, Vim, tmux, Zsh, and ShellCheck.
-It uses the non-root `vscode` user with sudo access and Bash as the default
-VS Code terminal. Dotfile activation is manual, so you can choose which
-configurations to try inside the container.
+This repository owns its Ubuntu 24.04 image and project toolchain, including
+Python and ShellCheck, in `.devcontainer/Dockerfile`. Its reusable
+[devtools Feature](features/README.md) supplies `dev`, Git, Vim, tmux, and Zsh.
+The Feature installs the launcher into a private Python environment, separate
+from any project virtual environment. Both layers form one devcontainer image.
+
+The container uses the non-root `vscode` user with sudo access and Bash as the
+default VS Code terminal. Dotfile configuration activation remains manual.
 
 1. Install and start Docker (Docker Desktop on macOS or Windows).
-2. Install VS Code and the **Dev Containers** extension
-   (`ms-vscode-remote.remote-containers`).
+2. Install host Python 3 for local Feature preparation, then VS Code and the
+   **Dev Containers** extension (`ms-vscode-remote.remote-containers`).
 3. Open this repository in VS Code, then run **Dev Containers: Reopen in
    Container** from the command palette. The first launch builds the image.
 
@@ -191,7 +196,21 @@ root:
 
 ```bash
 devcontainer up --workspace-folder .
-devcontainer exec --workspace-folder . bash
+devcontainer exec --workspace-folder . dev env
+devcontainer exec --workspace-folder . dev
+```
+
+The initialize hook stages the Feature from this checkout before startup.
+`dev env` reports container context; `dev exec <command>` preserves the project
+directory, executable selection, streams, and exit status. Inside the container,
+bare `dev` reconnects to local tmux work. Creating or rebuilding containers through
+`dev` is still pending; use the Dev Container CLI for those operations.
+
+Run launcher checks in the installed container:
+
+```sh
+devcontainer exec --workspace-folder . dev exec /opt/dotfiles-dev/venv/bin/python -B -m unittest discover -s tests -v
+devcontainer exec --workspace-folder . dev exec /opt/dotfiles-dev/venv/bin/python -B tests/container_smoke.py
 ```
 
 The repository is mounted into the container, so workspace edits persist on the
