@@ -1,4 +1,4 @@
-"""Host sessions are identified by tmux metadata, never a launcher registry."""
+"""Local sessions are identified by workspace and environment in tmux metadata."""
 
 import hashlib
 import os
@@ -14,8 +14,9 @@ WORKSPACE_OPTION = "@dev_workspace"
 ENVIRONMENT_OPTION = "@dev_environment"
 
 
-class Host:
-    def __init__(self):
+class Local:
+    def __init__(self, environment):
+        self.environment = environment
         self.tmux = shutil.which("tmux")
         if self.tmux is None:
             raise click.ClickException("Missing tool: tmux. Install it explicitly during environment setup.")
@@ -44,7 +45,7 @@ class Host:
     def find(self, workspace):
         for session in self.sessions():
             if (self.metadata(session, WORKSPACE_OPTION) == str(workspace.root)
-                    and self.metadata(session, ENVIRONMENT_OPTION) == "host"):
+                    and self.metadata(session, ENVIRONMENT_OPTION) == self.environment):
                 return session
         return None
 
@@ -52,7 +53,7 @@ class Host:
         existing = self.find(workspace)
         if existing:
             return existing
-        name = "dev-host-" + hashlib.sha256(os.fsencode(workspace.root)).hexdigest()
+        name = f"dev-{self.environment}-" + hashlib.sha256(os.fsencode(workspace.root)).hexdigest()
         # Creation is atomic in tmux. A conflicting untagged session is not ours.
         created = self.run("new-session", "-dP", "-F", "#{session_id}", "-s", name,
                            "-c", str(workspace.cwd), check=False)
@@ -63,13 +64,13 @@ class Host:
                 return existing
             raise click.ClickException(created.stderr.strip() or "Cannot create host session")
         session = created.stdout.strip()
-        for option, value in ((WORKSPACE_OPTION, str(workspace.root)), (ENVIRONMENT_OPTION, "host")):
+        for option, value in ((WORKSPACE_OPTION, str(workspace.root)), (ENVIRONMENT_OPTION, self.environment)):
             self.run("set-option", "-t", session, option, value)
         return session
 
     def enter(self, workspace):
         if not os.isatty(0) or not os.isatty(1):
-            raise click.ClickException("Host entry requires an interactive terminal. Use dev exec for commands.")
+            raise click.ClickException("Entry requires an interactive terminal. Use dev exec for commands.")
         session = self.ensure(workspace)
         # Switch an attached client on our server; never detach a client on another server.
         same_server = False
@@ -88,6 +89,6 @@ class Host:
 def environment():
     """An explicitly unsupported context must never silently run on the host."""
     selected = os.environ.get("DEV_ENVIRONMENT", "host")
-    if selected != "host":
+    if selected not in {"host", "container"}:
         raise click.ClickException(f"Unsupported environment: {selected}. No host command was run.")
     return selected

@@ -1,8 +1,8 @@
-"""Click command registration for host work and repository checks."""
+"""Click command registration for work in the invoking environment."""
 
 import click
 
-from .host import Host, environment
+from .local import Local, environment
 from .process import replace
 from .workspace import Workspace
 
@@ -11,11 +11,11 @@ from .workspace import Workspace
 @click.option("--workspace", type=click.Path(file_okay=False), help="Override workspace discovery.")
 @click.pass_context
 def cli(ctx, workspace):
-    """Enter host work, inspect the environment, or run a command."""
-    environment()
+    """Enter local work, inspect the environment, or run a command."""
+    ctx.meta["environment"] = environment()
     ctx.obj = Workspace.discover(workspace)
     if ctx.invoked_subcommand is None:
-        Host().enter(ctx.obj)
+        Local(ctx.meta["environment"]).enter(ctx.obj)
 
 
 @cli.group(invoke_without_command=True)
@@ -23,7 +23,7 @@ def cli(ctx, workspace):
 def env(ctx):
     """Inspect or enter an environment."""
     if ctx.invoked_subcommand is None:
-        click.echo("Environment: host")
+        click.echo(f"Environment: {ctx.meta['environment']}")
         click.echo(f"Workspace: {ctx.obj.root}")
         click.echo(f"Directory: {ctx.obj.cwd}")
         if not ctx.obj.git_metadata_available:
@@ -32,18 +32,22 @@ def env(ctx):
 
 @env.command()
 @click.argument("target", type=click.Choice(["host", "container"]))
-@click.pass_obj
-def enter(workspace, target):
-    """Enter or reconnect to an environment."""
-    if target != "host":
-        raise click.ClickException("Container entry is not implemented. No host command was run.")
-    Host().enter(workspace)
+@click.pass_context
+def enter(ctx, target):
+    """Enter or reconnect to work in the invoking environment."""
+    current = ctx.meta["environment"]
+    if target != current:
+        raise click.ClickException(
+            f"Cannot enter {target} from {current}: cross-environment entry is not implemented. "
+            "No command was run."
+        )
+    Local(current).enter(ctx.obj)
 
 
 @env.command()
 def rebuild():
-    """Container recreation is not available in the host launcher."""
-    raise click.ClickException("Rebuild is unsupported on the host. No host command was run.")
+    """Container recreation is not yet available through the launcher."""
+    raise click.ClickException("Rebuild is not implemented. No command was run.")
 
 
 @cli.command("exec", context_settings={"ignore_unknown_options": True, "help_option_names": []})

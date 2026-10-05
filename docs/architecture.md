@@ -46,8 +46,9 @@ directory outside a project. An explicit path overrides discovery. New commands
 start in the invocation directory when it lies inside the workspace, or at its
 root otherwise; containers use the corresponding workspace path.
 
-Bare `dev` enters the host for human work. Container entry is explicit and uses
-project environment configuration subject to the security contract. Missing
+An unmanaged bare `dev` enters the host for human work. Inside a managed container,
+it reconnects to human work in that container. Host-side container entry is explicit
+and uses project environment configuration subject to the security contract. Missing
 configuration or failed setup stops entry and execution without falling back to
 the host. Host entry works without container configuration or running containers.
 
@@ -120,7 +121,7 @@ their CI and integration policy.
 The proposed interface expresses these contracts:
 
 ```text
-dev                                    Enter or reconnect to human host work
+dev                                    Enter or reconnect to human work in the current environment
 dev env                                Show the environment and workspace
 dev env enter host                     Enter or reconnect to host work
 dev env enter container                Prepare and enter a project container

@@ -1,1 +1,1 @@
-"""Host launcher. Feature commands register on dotfiles_dev.cli.cli."""
+"""Development launcher. Feature commands register on dotfiles_dev.cli.cli."""
