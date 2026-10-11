@@ -1,0 +1,13 @@
+name = "dev_creation"
+version = "0.1.0"
+defaultTargets = ["DevCreation", "creation_model"]
+
+[leanOptions]
+warningAsError = true
+
+[[lean_lib]]
+name = "DevCreation"
+
+[[lean_exe]]
+name = "creation_model"
+root = "Main"
