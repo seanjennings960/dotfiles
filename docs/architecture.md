@@ -118,6 +118,14 @@ immutable data read-only, but keep writable source, build output, test data, and
 service state private unless sharing is explicitly coordinated. Apply
 per-environment resource limits and measure startup and concurrent-agent costs.
 
+The [Lean creation-policy prototype](../formal/README.md) makes the acquisition
+and creation contract executable and proves controller invariants. Fetching is
+a separate explicit operation over locked inputs and named registry grants.
+Creation requires a complete, leased local input set and prohibits network
+sockets throughout build and setup, including host-side initialization. These
+guarantees assume entry through `dev` and a trusted backend that enforces the
+specified effects. The prototype is not yet integrated with the Python launcher.
+
 Agent changes and execution history remain available for human review, correlated
 with the workspace, starting code revision, and environment inputs. Projects own
 their CI and integration policy.

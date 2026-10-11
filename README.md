@@ -7,6 +7,9 @@ the terminal-first environment. The Python `dev` launcher and initial
 [personal devtools Feature](features/README.md) are available for local container
 development.
 
+The [Lean creation-policy prototype](formal/README.md) contains an executable
+acquisition/creation model, machine-checked invariants, and runnable scenarios.
+
 Prerequisites:
 ```
 sudo apt-get install tmux
