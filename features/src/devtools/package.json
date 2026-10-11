@@ -1,0 +1,8 @@
+{
+  "name": "dotfiles-checkers",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "pyright": "1.1.414"
+  }
+}

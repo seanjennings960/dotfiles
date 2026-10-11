@@ -1,9 +1,16 @@
 {
     "name": "Dotfiles (Ubuntu 24.04)",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile",
+        "context": ".."
     },
     "remoteUser": "vscode",
+    "init": true,
+    "initializeCommand": ["python3", "scripts/prepare_feature.py"],
+    "features": {
+        "./features/devtools": {}
+    },
+    "postCreateCommand": "dev activate && make test-env",
     "customizations": {
         "vscode": {
             "settings": {

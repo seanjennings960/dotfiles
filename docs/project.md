@@ -20,9 +20,11 @@ and agent isolation. This document defines delivery order and completion checks.
 
 ## Delivery starting point
 
-At this revision, `master` contains personal configuration, legacy installation
-scripts, and an Ubuntu 24.04 devcontainer. The following implementations are in
-open PRs; their presence in a worktree does not make them an integrated release.
+The starting `master` contained personal configuration, legacy installation
+scripts, and an Ubuntu 24.04 devcontainer. This baseline reconciles the launcher,
+activation, shell/tmux, Neovim/Python, and personal Feature implementations below.
+The [integration evidence](milestone-1.md) records contracts and verification;
+the table retains the source-PR history rather than implying those PRs were merged.
 
 | Work | Existing PRs and integration notes |
 | --- | --- |
@@ -32,10 +34,10 @@ open PRs; their presence in a worktree does not make them an integrated release.
 | Agent history | #39 proposes searchable OpenCode transcripts. |
 | Container context and Feature packaging | #40 builds on #25; #41 builds on #40 and supplies the initial reusable personal devtools Feature. |
 
-Homebrew distribution, full tool lifecycle management, `dev languages`, managed
+`dev languages` now reports native terminal/editor evidence and explicit unresolved
+agent selections. Homebrew distribution, full tool lifecycle management, managed
 container creation, and isolated agent launch remain planned. The comprehension
-workflow below is new work. Reconcile the documentation changes in #38 and #40-41
-against this direction as those implementations land.
+features below build on the integrated Linux workflow.
 
 ## Approach
 
@@ -49,7 +51,7 @@ coordination only where a concrete user task needs it. Keep architecture focused
 on user contracts and this roadmap focused on delivery. The research behind the
 design is linked in the [architecture references](architecture.md#references).
 
-`dev test` is the proposed common entry point for this repository's checks. Keep
+`dev test` is the common entry point for this repository's checks. Keep
 it a thin wrapper over the chosen test runner, forwarding arguments and exit
 status. Projects own their test commands, which can run through `dev exec`.
 Installation and dependency resolution are explicit setup steps.
@@ -60,6 +62,11 @@ analyzer. Broader packaging and tool management can progress alongside them.
 Update the README as commands and workflows become available.
 
 ## 1. Integrate a reliable inspection and execution baseline
+
+**Status:** implemented with integrated automated Linux ARM64 checks. The manual
+host-clipboard delivery criterion below remains outstanding; native macOS is not
+yet a verified installation target. See [baseline evidence](milestone-1.md) for
+the installed workflow and remaining acceptance boundaries.
 
 Integrate the existing work before relying on it in a comprehension feature:
 
