@@ -1,0 +1,11 @@
+{
+    "id": "devtools",
+    "version": "0.1.0",
+    "name": "Dotfiles developer tools",
+    "description": "Install dev in a private Python environment and the current personal terminal toolset on Debian/Ubuntu.",
+    "containerEnv": {
+        "DEV_ENVIRONMENT": "container",
+        "DOTFILES_LAUNCHER": "/usr/local/bin/dev",
+        "DOTFILES_LAUNCHER_PYTHON": "/opt/dotfiles-dev/venv/bin/python"
+    }
+}

@@ -1,0 +1,12 @@
+local map = vim.keymap.set
+map('n', '<leader>i', '<Cmd>set list!<CR>', { desc = 'Toggle whitespace' })
+map('n', '<leader>N', '<Cmd>setlocal number!<CR>', { desc = 'Toggle line numbers' })
+map('n', '<leader>n', '<Cmd>NERDTreeToggle<CR>', { desc = 'Toggle file tree' })
+map('n', '<C-p>', '<Cmd>CtrlP<CR>', { desc = 'Find file' })
+map('n', '<F4>', '<Cmd>call gruvbox#hls_toggle()<CR>', { desc = 'Toggle search highlighting' })
+map('i', '<F4>', '<Esc><Cmd>call gruvbox#hls_toggle()<CR>a')
+map('x', '<F4>', '<Esc><Cmd>call gruvbox#hls_toggle()<CR>gv')
+map('n', '<CR>', '<Cmd>call gruvbox#hls_hide()<CR><CR>')
+map('n', '*', '<Cmd>let @/ = ""<CR><Cmd>call gruvbox#hls_show()<CR>*')
+map('n', '/', '<Cmd>let @/ = ""<CR><Cmd>call gruvbox#hls_show()<CR>/')
+map('n', '?', '<Cmd>let @/ = ""<CR><Cmd>call gruvbox#hls_show()<CR>?')

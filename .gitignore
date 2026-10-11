@@ -1,2 +1,13 @@
 .swp
 .backup
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.launcher-venv/
+*.egg-info/
+build/
+dist/
+.verification/
+# Prepared local Feature payloads are build inputs, not a second source tree.
+.devcontainer/features/
