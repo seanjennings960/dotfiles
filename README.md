@@ -17,10 +17,10 @@ dev env
 ```
 
 Source the script (rather than running it) so it can add the repository's
-`.dev-venv/bin` directory to the current shell's `PATH`. The script creates the
+`.devtools/venv/bin` directory to the current shell's `PATH`. The script creates the
 virtual environment if needed and installs the launcher in editable mode.
-It reuses the Python inside an existing `.dev-venv` if it is 3.11 or newer.
-Otherwise it uses a local Python 3.11 in `.dev-python/`, downloading it when
+It reuses the Python inside an existing `.devtools/venv` if it is 3.11 or newer.
+Otherwise it uses a local Python 3.11 in `.devtools/python/`, downloading it when
 needed. No preinstalled Python or uv is required.
 The failure handler keeps Zsh open if `ERR_EXIT` is enabled.
 The script requires Zsh. Sourcing it from Bash reports an error and returns.
@@ -28,16 +28,17 @@ The script requires Zsh. Sourcing it from Bash reports an error and returns.
 ### Repository-local Python 3.11
 
 `activate.sh` handles the entire installation. On a fresh checkout it uses
-`curl` and `sh` to install [uv](https://docs.astral.sh/uv/) in `.dev-tools/`,
-downloads Python 3.11 into `.dev-python/`, and creates `.dev-venv/`. Internet
-access is required for these downloads and package installation. The bootstrap
-uses standard shell utilities and does not modify shell startup files.
+`curl` and `sh` to install [uv](https://docs.astral.sh/uv/) in `.devtools/`,
+downloads Python 3.11 into `.devtools/python/`, and creates the virtual
+environment in `.devtools/venv/`. Internet access is required for these
+downloads and package installation. The bootstrap uses standard shell utilities
+and does not modify shell startup files.
 
 An existing venv with an older Python is preserved under
-`.dev-venv-backup.<unique suffix>/venv` before the script creates its replacement.
-Subsequent activations reuse the installed Python and venv. The generated
-directories are ignored by Git. Keep `.dev-python/` in place because the venv
-depends on that interpreter.
+`.devtools/venv-backup.<unique suffix>/venv` before the script creates its
+replacement. Subsequent activations reuse the installed Python and venv. Git
+ignores `.devtools/`. Keep it in place because the venv depends on the local
+interpreter.
 
 ### Running tests
 

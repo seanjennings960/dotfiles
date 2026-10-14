@@ -104,7 +104,7 @@ def test_execution_requires_sourcing(activation):
 def test_install_failure_preserves_environment(activation):
     root, bin_dir, _ = activation
     executable(bin_dir / "python3", "exit 0\n")
-    venv_bin = root / ".dev-venv" / "bin"
+    venv_bin = root / ".devtools" / "venv" / "bin"
     venv_bin.mkdir(parents=True)
     executable(venv_bin / "python", 'if [ "$3" = install ]; then exit 1; fi\nexit 0\n')
     executable(venv_bin / "pip", "exit 0\n")
@@ -125,7 +125,7 @@ def test_local_python_creates_venv_when_system_python_is_too_old(activation):
     root, bin_dir, _ = activation
     executable(bin_dir / "python", "exit 1\n")
     executable(bin_dir / "python3", "exit 1\n")
-    python_bin = root / ".dev-python" / "cpython-3.11-test" / "bin"
+    python_bin = root / ".devtools" / "python" / "cpython-3.11-test" / "bin"
     python_bin.mkdir(parents=True)
     fake_python(python_bin / "python3.11")
     result = run_shell(
@@ -133,24 +133,24 @@ def test_local_python_creates_venv_when_system_python_is_too_old(activation):
         ZSH, 'source ./activate.sh || exit 99; print "venv:$VIRTUAL_ENV"',
     )
     assert result.returncode == 0, result.stderr
-    assert (root / ".dev-venv" / "bin" / "python").is_file()
-    assert f"venv:{root}/.dev-venv" in result.stdout
+    assert (root / ".devtools" / "venv" / "bin" / "python").is_file()
+    assert f"venv:{root}/.devtools/venv" in result.stdout
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_existing_old_venv_is_backed_up_and_replaced(activation):
     root, bin_dir, _ = activation
-    venv_bin = root / ".dev-venv" / "bin"
+    venv_bin = root / ".devtools" / "venv" / "bin"
     venv_bin.mkdir(parents=True)
     executable(venv_bin / "python", 'printf "Python 3.9.6\\n"\nexit 1\n')
     executable(venv_bin / "pip", "exit 0\n")
-    python_bin = root / ".dev-python" / "cpython-3.11-test" / "bin"
+    python_bin = root / ".devtools" / "python" / "cpython-3.11-test" / "bin"
     python_bin.mkdir(parents=True)
     fake_python(python_bin / "python3.11")
     for name in ("mktemp", "mv"):
         (bin_dir / name).symlink_to(shutil.which(name))
     result = run_shell(activation, ZSH, 'source ./activate.sh || exit 99')
     assert result.returncode == 0, result.stderr
-    backups = list(root.glob(".dev-venv-backup.*/venv/bin/python"))
+    backups = list((root / ".devtools").glob("venv-backup.*/venv/bin/python"))
     assert len(backups) == 1
     assert "Python 3.9.6" in backups[0].read_text()
     assert "Preserved the old virtual environment" in result.stdout
@@ -159,12 +159,12 @@ def test_existing_old_venv_is_backed_up_and_replaced(activation):
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_bootstrap_downloads_python_with_cached_uv(activation):
     root, _, _ = activation
-    tools = root / ".dev-tools"
+    tools = root / ".devtools"
     tools.mkdir()
     fake_uv(activation, tools / "uv")
     result = run_shell(activation, ZSH, 'source ./activate.sh || exit 99')
     assert result.returncode == 0, result.stderr
-    assert (root / ".dev-venv" / "bin" / "python").exists()
+    assert (root / ".devtools" / "venv" / "bin" / "python").exists()
     assert "Installing repository-local Python 3.11" in result.stdout
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
@@ -185,8 +185,8 @@ def test_fresh_bootstrap_installs_uv_and_python(activation):
         (bin_dir / name).symlink_to(shutil.which(name))
     result = run_shell(activation, ZSH, 'setopt ERR_EXIT; source ./activate.sh || exit 99')
     assert result.returncode == 0, result.stderr
-    assert (root / ".dev-tools" / "uv").exists()
-    assert (root / ".dev-venv" / "bin" / "python").exists()
+    assert (root / ".devtools" / "uv").exists()
+    assert (root / ".devtools" / "venv" / "bin" / "python").exists()
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_failed_download_preserves_environment(activation):
@@ -204,12 +204,12 @@ def test_failed_download_preserves_environment(activation):
     assert "failed:1" in result.stdout
     assert "venv:original" in result.stdout
     assert "Could not install uv" in result.stderr
-    assert not (root / ".dev-venv").exists()
+    assert not (root / ".devtools" / "venv").exists()
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_existing_venv_activates_without_system_python(activation):
     root, _, _ = activation
-    venv_bin = root / ".dev-venv" / "bin"
+    venv_bin = root / ".devtools" / "venv" / "bin"
     venv_bin.mkdir(parents=True)
     executable(venv_bin / "python", "exit 0\n")
     executable(venv_bin / "pip", "exit 0\n")
@@ -221,6 +221,6 @@ def test_existing_venv_activates_without_system_python(activation):
         'print "path_entries:${#path}"',
     )
     assert result.returncode == 0, result.stderr
-    assert f"venv:{root}/.dev-venv" in result.stdout
+    assert f"venv:{root}/.devtools/venv" in result.stdout
     assert f"first:{venv_bin}" in result.stdout
     assert "path_entries:2" in result.stdout

@@ -14,13 +14,15 @@ fi
 function _dotfiles_dev_activate {
   emulate -L zsh
   setopt PIPE_FAIL
-  local script_path repo_root python_cmd venv_dir candidate uv_cmd backup_dir
+  local script_path repo_root python_cmd tools_dir python_dir venv_dir candidate uv_cmd backup_dir
   local rebuild_venv=0
   local -a python_candidates
 
   script_path=${${(%):-%x}:A}
   repo_root=${script_path:h}
-  venv_dir="$repo_root/.dev-venv"
+  tools_dir="$repo_root/.devtools"
+  python_dir="$tools_dir/python"
+  venv_dir="$tools_dir/venv"
 
   if [[ ! -f "$repo_root/pyproject.toml" || ! -d "$repo_root/dotfiles_dev" ]]; then
     print -u2 -- "activate.sh must be inside the dotfiles repository (missing pyproject.toml or dotfiles_dev/)."
@@ -45,7 +47,7 @@ function _dotfiles_dev_activate {
   fi
 
   if [[ -z "$python_cmd" ]]; then
-    python_candidates=("$repo_root"/.dev-python/cpython-3.11*/bin/python3.11(N))
+    python_candidates=("$python_dir"/cpython-3.11*/bin/python3.11(N))
     for candidate in "${python_candidates[@]}"; do
       if "$candidate" -c 'import sys; assert sys.version_info >= (3, 11)' 2>/dev/null; then
         python_cmd="$candidate"
@@ -53,29 +55,29 @@ function _dotfiles_dev_activate {
       fi
     done
     if [[ -z "$python_cmd" ]]; then
-      uv_cmd="$repo_root/.dev-tools/uv"
+      uv_cmd="$tools_dir/uv"
       if [[ ! -x "$uv_cmd" ]]; then
         if ! command -v curl >/dev/null || ! command -v sh >/dev/null; then
           print -u2 -- "Bootstrapping Python 3.11 requires curl and sh on PATH."
           return 1
         fi
         print -- "Installing repository-local uv"
-        if ! command mkdir -p "$repo_root/.dev-tools"; then
-          print -u2 -- "Could not create .dev-tools."
+        if ! command mkdir -p "$tools_dir"; then
+          print -u2 -- "Could not create .devtools."
           return 1
         fi
         if ! command curl --fail --silent --show-error --location https://astral.sh/uv/install.sh |
-          UV_INSTALL_DIR="$repo_root/.dev-tools" UV_NO_MODIFY_PATH=1 UV_NO_INSTALLER_METADATA=1 command sh; then
+          UV_INSTALL_DIR="$tools_dir" UV_NO_MODIFY_PATH=1 UV_NO_INSTALLER_METADATA=1 command sh; then
           print -u2 -- "Could not install uv. Check network access and retry."
           return 1
         fi
       fi
       print -- "Installing repository-local Python 3.11"
-      if ! UV_CACHE_DIR="$repo_root/.dev-tools/cache" "$uv_cmd" python install 3.11 --install-dir "$repo_root/.dev-python" --no-bin; then
+      if ! UV_CACHE_DIR="$tools_dir/cache" "$uv_cmd" python install 3.11 --install-dir "$python_dir" --no-bin; then
         print -u2 -- "Could not install Python 3.11. Check network access and retry."
         return 1
       fi
-      python_candidates=("$repo_root"/.dev-python/cpython-3.11*/bin/python3.11(N))
+      python_candidates=("$python_dir"/cpython-3.11*/bin/python3.11(N))
       for candidate in "${python_candidates[@]}"; do
         if "$candidate" -c 'import sys; assert sys.version_info >= (3, 11)' 2>/dev/null; then
           python_cmd="$candidate"
@@ -99,7 +101,7 @@ function _dotfiles_dev_activate {
       return 1
     fi
     if [[ "$rebuild_venv" == 1 ]]; then
-      backup_dir=$(command mktemp -d "$repo_root/.dev-venv-backup.XXXXXXXX") || {
+      backup_dir=$(command mktemp -d "$tools_dir/venv-backup.XXXXXXXX") || {
         print -u2 -- "Could not create a backup directory for the old virtual environment."
         return 1
       }
