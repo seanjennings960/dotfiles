@@ -1,5 +1,36 @@
 #!/usr/bin/env zsh
 
+# The repository's `dev` command can be tested from a plain Zsh shell without
+# installing it globally. From Zsh, run this from the repository:
+#
+# ```zsh
+# source ./activate.sh || print -u2 'Activation failed'
+# dev env
+# ```
+#
+# Source the script (rather than running it) so it can add the repository's
+# `.dev-venv/bin` directory to the current shell's `PATH`. The script creates the
+# virtual environment if needed and installs the launcher in editable mode.
+# It reuses the Python inside an existing `.dev-venv` if it is 3.11 or newer.
+# Otherwise it uses a local Python 3.11 in `.dev-python/`, downloading it when
+# needed. No preinstalled Python or uv is required.
+# The failure handler keeps Zsh open if `ERR_EXIT` is enabled.
+# The script requires Zsh. Sourcing it from Bash reports an error and returns.
+#
+# ### Repository-local Python 3.11
+#
+# `activate.sh` handles the entire installation. On a fresh checkout it uses
+# `curl` and `sh` to install [uv](https://docs.astral.sh/uv/) in `.dev-tools/`,
+# downloads Python 3.11 into `.dev-python/`, and creates `.dev-venv/`. Internet
+# access is required for these downloads and package installation. The bootstrap
+# uses standard shell utilities and does not modify shell startup files.
+#
+# An existing venv with an older Python is preserved under
+# `.dev-venv-backup.<unique suffix>/venv` before the script creates its replacement.
+# Subsequent activations reuse the installed Python and venv. The generated
+# directories are ignored by Git. Keep `.dev-python/` in place because the venv
+# depends on that interpreter.
+
 # Source this file from Zsh to activate the repository's host-side dev CLI.
 if [ -z "${ZSH_VERSION:-}" ]; then
   printf '%s\n' 'activate.sh requires Zsh. Run: zsh, then source ./activate.sh' >&2

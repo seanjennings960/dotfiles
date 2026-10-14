@@ -1,57 +1,93 @@
-# Rahul Rawat's Dotfiles
+# Devchain -- Custom Terminal Interface
 
-A collection of the dotfiles used on my work and home Linux machines.
+`dev` is a tmux-based CLI designed to operate as a common operating environment
+between human and llm-based agents.
 
 See the [roadmap](docs/project.md) for the planned terminal-first environment,
 Dev Container Feature, and host-side `dev` launcher, and the
 [architecture](docs/architecture.md) for how they fit together.
 
-## Local dev entrypoint on macOS
+## Installation
 
-The repository's `dev` command can be tested from a plain Zsh shell without
-installing it globally. From Zsh, run this from the repository:
+The current installation workflow assumes `git`, `curl`, and `zsh`. In a `zsh`
+shell, run:
 
 ```zsh
-source ./activate.sh || print -u2 'Activation failed'
-dev env
+git clone https://github.com/seanjennings960/dotfiles
+cd dotfiles
+source ./activate.sh
+dev --version
 ```
 
-Source the script (rather than running it) so it can add the repository's
-`.devtools/venv/bin` directory to the current shell's `PATH`. The script creates the
-virtual environment if needed and installs the launcher in editable mode.
-It reuses the Python inside an existing `.devtools/venv` if it is 3.11 or newer.
-Otherwise it uses a local Python 3.11 in `.devtools/python/`, downloading it when
-needed. No preinstalled Python or uv is required.
-The failure handler keeps Zsh open if `ERR_EXIT` is enabled.
-The script requires Zsh. Sourcing it from Bash reports an error and returns.
+Tested natively on MacOS, and also an Ubuntu container (TODO: add link to
+CI here).
 
-### Repository-local Python 3.11
+A more robust installation mechanism is planned. (Although, I guess the
+current setup is not too far off the `curl` oneliner which is so common
+between modern-day installations. I guess a platform-aware Bash script
+is about as universal as it gets. TODO: productionize installation)
 
-`activate.sh` handles the entire installation. On a fresh checkout it uses
-`curl` and `sh` to install [uv](https://docs.astral.sh/uv/) in `.devtools/`,
-downloads Python 3.11 into `.devtools/python/`, and creates the virtual
-environment in `.devtools/venv/`. Internet access is required for these
-downloads and package installation. The bootstrap uses standard shell utilities
-and does not modify shell startup files.
+## Enter Dev
 
-An existing venv with an older Python is preserved under
-`.devtools/venv-backup.<unique suffix>/venv` before the script creates its
-replacement. Subsequent activations reuse the installed Python and venv. Git
-ignores `.devtools/`. Keep it in place because the venv depends on the local
-interpreter.
+After installation, change the working directory to a `git` repository and type
+```zsh
+dev
+```
+to enter a containerized development environment. `dev` will discover `$ROOT_DIR`, the root of the repository.
+Only the code inside `$ROOT_DIR` can be modified without rebuilding the environment.
 
-### Running tests
+Call
+```zsh
+dev --workspace=$PATH_TO_WORKSPACE
+```
+to bypass workspace discovery.
 
-After sourcing `activate.sh`, install the development dependencies and run the
-tests from the repository root:
+
+## Offline-first Environments
+
+An environment contains all the dependencies required to build and run a (multi-lingual)
+software package. While environment creation
+```zsh
+dev env create
+```
+may require internet connection, they can be rebuilt without connectivity via
+```zsh
+dev env rebuild
+```
+.
+
+Each environment is isolated from the next. Filesystem writes do not collide with other environments.
+
+Under the hood, environments correspond to docker images. One image may have many (copied) environments,
+to keep environment creation cheap. For now, each environment corresponds to exactly one docker container
+(or the host computer).
+
+We also use git worktrees under the hood.
+
+## Running tests
+
+After sourcing `activate.sh`, run the tests from the repository root:
 
 ```sh
-python -m pip install -e '.[dev]'
 python -m pytest
 ```
 
 The activation tests require Bash and Zsh. Pytest skips tests for shells that
 are not installed.
+
+TODO: Make a `dev test` command which aliases to `python -m pytest` for now. We'll
+do automatic test discovery later
+
+
+
+
+
+
+
+# Legacy Dotfiles
+
+This is what I used to do pre-Docker. Now, everything is handled automatically.
+TODO: Prune unused configuration files.
 
 Prerequisites:
 ```
@@ -69,7 +105,7 @@ git submodule update --init --recursive --checkout
 ./infectdots.sh
 ```
 
-This install script does the following things: 
+This install script does the following things:
 * Link .* (dotfiles) on your computer to this directory
 * Initialize and update git submodules for pathogen plugins
 
@@ -254,19 +290,19 @@ Rebuild Container** from the VS Code command palette.
 * Powerline does not always work as intended. Look through the Powerline installation
 guide on github
 
-* Powerline will show weird icons by default in the powerline bar. Set the powerline 
+* Powerline will show weird icons by default in the powerline bar. Set the powerline
 mapping to 0 to fix this.
 
 * If there is errors involving a "vim error" due to comments in the vimrc, restarting
-your computer can fix the problems. Thanks Linus! 
+your computer can fix the problems. Thanks Linus!
 
 ### Future Improvements
-* Transition to Vundle from Pathogen  
-Pathogen way to version control utilized git submodules. Vundle requires 
+* Transition to Vundle from Pathogen
+Pathogen way to version control utilized git submodules. Vundle requires
 plugin calls in your vimrc files which is a little more elegant.
 
-* Transition to Antigen from Oh-my-zsh   
-Antigen is built with inspiration of oh-my-zsh and pathogen. However, it 
+* Transition to Antigen from Oh-my-zsh
+Antigen is built with inspiration of oh-my-zsh and pathogen. However, it
 is tries to avoid the bloat of oh-my-zsh using Vundle inspired plugin calls.
 
 * Fix autosuggestions bug
