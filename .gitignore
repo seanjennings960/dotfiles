@@ -1,3 +1,5 @@
 .swp
 .backup
 __pycache__/
+.dev-venv/
+*.egg-info/

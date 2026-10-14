@@ -6,6 +6,21 @@ See the [roadmap](docs/project.md) for the planned terminal-first environment,
 Dev Container Feature, and host-side `dev` launcher, and the
 [architecture](docs/architecture.md) for how they fit together.
 
+## Local dev entrypoint on macOS
+
+The repository's `dev` command can be tested from a plain Zsh shell without
+installing it globally. With Python 3.11 or newer, pip, and the `venv` module
+available, run this from the repository:
+
+```zsh
+source ./activate.sh
+dev env
+```
+
+Source the script (rather than running it) so it can add the repository's
+`.dev-venv/bin` directory to the current shell's `PATH`. The script creates the
+virtual environment if needed and installs the launcher in editable mode.
+
 Prerequisites:
 ```
 sudo apt-get install tmux
