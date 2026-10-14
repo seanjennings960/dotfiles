@@ -2,3 +2,5 @@
 .backup
 .devcontainer/features/
 __pycache__/
+.dev-venv/
+*.egg-info/

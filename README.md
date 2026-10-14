@@ -10,6 +10,21 @@ development.
 The [Lean creation-policy prototype](formal/README.md) contains an executable
 acquisition/creation model, machine-checked invariants, and runnable scenarios.
 
+## Local dev entrypoint on macOS
+
+The repository's `dev` command can be tested from a plain Zsh shell without
+installing it globally. With Python 3.11 or newer, pip, and the `venv` module
+available, run this from the repository:
+
+```zsh
+source ./activate.sh
+dev env
+```
+
+Source the script (rather than running it) so it can add the repository's
+`.dev-venv/bin` directory to the current shell's `PATH`. The script creates the
+virtual environment if needed and installs the launcher in editable mode.
+
 Prerequisites:
 ```
 sudo apt-get install tmux
