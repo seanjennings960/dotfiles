@@ -2,6 +2,7 @@
 
 import click
 
+from . import testing
 from .host import Host, environment
 from .process import replace
 from .workspace import Workspace
@@ -52,6 +53,14 @@ def rebuild():
 def execute(workspace, command):
     """Run COMMAND directly, preserving arguments, streams, terminal and status."""
     replace(command, workspace.cwd)
+
+
+@cli.command("test", context_settings={"ignore_unknown_options": True, "allow_extra_args": True,
+                                      "help_option_names": []})
+@click.argument("args", nargs=-1, type=click.UNPROCESSED)
+def test(args):
+    """Run this repository's pytest suite with forwarded ARGS."""
+    testing.run(args)
 
 
 def main():
