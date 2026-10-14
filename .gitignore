@@ -2,4 +2,8 @@
 .backup
 __pycache__/
 .dev-venv/
+.dev-venv.python39-backup/
+.dev-venv-backup.*/
+.dev-python/
+.dev-tools/
 *.egg-info/
