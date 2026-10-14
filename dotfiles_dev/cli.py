@@ -2,8 +2,7 @@
 
 import click
 
-from .local import Local, environment
-from .process import replace
+from .local import Local, environment, replace
 from .workspace import Workspace
 
 
