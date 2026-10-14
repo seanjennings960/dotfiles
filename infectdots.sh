@@ -16,6 +16,11 @@ function install {
     return 1
   fi
 
+  if [ -L "$to_" ] && [ ! -e "$to_" ]; then
+    yellow "Replacing broken link ~/$to => $from"
+    rm "$to_"
+  fi
+
   if [ ! -e "$to_" ]; then
     yellow "Linking ~/$to => $from"
 
@@ -90,14 +95,14 @@ git submodule update
 # Vroom vroom!
 # install_dot "gitconfig"
 # install_dot "screenrc"
-install_dot "tmux.conf"
-install_dot "vim"
-install_dot "vimrc"
-install_dot "bash_aliases"
-install "tmux/tmux_neww.sh" "bin/tmux_neww"
+install "config/tmux.conf" ".tmux.conf"
+install "config/vim" ".vim"
+install "config/vimrc" ".vimrc"
+install "config/bash_aliases" ".bash_aliases"
+install "config/tmux/tmux_neww.sh" "bin/tmux_neww"
 mkdir -p "$HOME/.config"
-install "ghostty" ".config/ghostty"
-install "opencode" ".config/opencode"
+install "config/ghostty" ".config/ghostty"
+install "config/opencode" ".config/opencode"
 #install_dot "oh-my-zsh"
 #install_dot "zshrc"
 # install_dot "pylintrc"

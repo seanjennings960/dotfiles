@@ -1,39 +1,39 @@
 [submodule "vim/bundle/better-whitespace"]
-	path = vim/bundle/better-whitespace
+	path = config/vim/bundle/better-whitespace
 	url = https://github.com/ntpeters/vim-better-whitespace.git
 [submodule "vim/bundle/nerdtree"]
-	path = vim/bundle/nerdtree
+	path = config/vim/bundle/nerdtree
 	url = https://github.com/scrooloose/nerdtree.git
 [submodule "vim/bundle/gruvbox"]
-	path = vim/bundle/gruvbox
+	path = config/vim/bundle/gruvbox
 	url = https://github.com/morhetz/gruvbox.git
 [submodule "vim/bundle/ctrlp"]
-	path = vim/bundle/ctrlp
+	path = config/vim/bundle/ctrlp
 	url = https://github.com/kien/ctrlp.vim.git
 [submodule "vim/bundle/gundo"]
-	path = vim/bundle/gundo
+	path = config/vim/bundle/gundo
 	url = https://github.com/sjl/gundo.vim.git
 [submodule "oh-my-zsh"]
-	path = oh-my-zsh
+	path = config/oh-my-zsh
 	url = https://github.com/robbyrussell/oh-my-zsh
 [submodule "zsh/plugins/zsh-autosuggestions"]
-	path = zsh/plugins/zsh-autosuggestions
+	path = config/zsh/plugins/zsh-autosuggestions
 	url = https://github.com/zsh-users/zsh-autosuggestions
 [submodule "vim/bundle/ale"]
-	path = vim/bundle/ale
+	path = config/vim/bundle/ale
 	url = https://github.com/w0rp/ale.git
 [submodule "vim-airline"]
-	path = vim/bundle/airline
+	path = config/vim/bundle/airline
 	url = https://github.com/vim-airline/vim-airline.git
 [submodule "vim/bundle/airline-themes"]
-	path = vim/bundle/airline-themes
+	path = config/vim/bundle/airline-themes
 	url = https://github.com/vim-airline/vim-airline-themes.git
 [submodule "vim/bundle/rust"]
-	path = vim/bundle/rust
+	path = config/vim/bundle/rust
 	url = https://github.com/rust-lang/rust.vim.git
 [submodule "vim/bundle/vim-python-pep8-indent"]
-	path = vim/bundle/vim-python-pep8-indent
+	path = config/vim/bundle/vim-python-pep8-indent
 	url = https://github.com/Vimjas/vim-python-pep8-indent.git
 [submodule "vim/bundle/typst.vim"]
-	path = vim/bundle/typst.vim
+	path = config/vim/bundle/typst.vim
 	url = https://github.com/kaarmu/typst.vim.git
