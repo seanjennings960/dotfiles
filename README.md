@@ -39,6 +39,19 @@ Subsequent activations reuse the installed Python and venv. The generated
 directories are ignored by Git. Keep `.dev-python/` in place because the venv
 depends on that interpreter.
 
+### Running tests
+
+After sourcing `activate.sh`, install the development dependencies and run the
+tests from the repository root:
+
+```sh
+python -m pip install -e '.[dev]'
+python -m pytest
+```
+
+The activation tests require Bash and Zsh. Pytest skips tests for shells that
+are not installed.
+
 Prerequisites:
 ```
 sudo apt-get install tmux
