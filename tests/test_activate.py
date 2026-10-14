@@ -53,9 +53,26 @@ def fake_uv(activation, path):
     env["MOCK_PYTHON"] = str(bin_dir / "downloaded-python")
     executable(
         path,
-        'python_bin="$5/cpython-3.11-test/bin"\n'
-        '/bin/mkdir -p "$python_bin"\n'
-        '/bin/cp "$MOCK_PYTHON" "$python_bin/python3.11"\n',
+        'if [ "$1" = --version ]; then\n'
+        '  printf "uv 0.13.1\\n"\n'
+        'elif [ "$1" = python ] && [ "$2" = install ]; then\n'
+        '  python_bin="$5/cpython-3.11.17-test/bin"\n'
+        '  /bin/mkdir -p "$python_bin"\n'
+        '  /bin/cp "$MOCK_PYTHON" "$python_bin/python3.11"\n'
+        'elif [ "$1" = pip ] && [ "$MOCK_UV_FAIL_PIP" = 1 ]; then\n'
+        '  exit 1\n'
+        'fi\n',
+    )
+
+
+def install_mock_uv(activation):
+    root, _, _ = activation
+    uv = root / ".devtools" / "uv"
+    uv.parent.mkdir(parents=True, exist_ok=True)
+    executable(
+        uv,
+        'if [ "$1" = --version ]; then printf "uv 0.13.1\\n"; '
+        'elif [ "$1" = pip ] && [ "$MOCK_UV_FAIL_PIP" = 1 ]; then exit 1; fi\n',
     )
 
 @pytest.mark.skipif(not BASH, reason="Bash is required")
@@ -77,7 +94,7 @@ def test_missing_python_returns_failure_and_cleans_up(activation):
     )
     assert result.returncode == 0, result.stderr
     assert "survived:1 function:0" in result.stdout
-    assert "Bootstrapping Python 3.11 requires curl and sh" in result.stderr
+    assert "Bootstrapping the development tools requires curl and sh" in result.stderr
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_err_exit_with_failure_handler_keeps_shell_open(activation):
@@ -103,10 +120,12 @@ def test_execution_requires_sourcing(activation):
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_install_failure_preserves_environment(activation):
     root, bin_dir, _ = activation
+    install_mock_uv(activation)
+    activation[2]["MOCK_UV_FAIL_PIP"] = "1"
     executable(bin_dir / "python3", "exit 0\n")
     venv_bin = root / ".devtools" / "venv" / "bin"
     venv_bin.mkdir(parents=True)
-    executable(venv_bin / "python", 'if [ "$3" = install ]; then exit 1; fi\nexit 0\n')
+    executable(venv_bin / "python", "exit 0\n")
     executable(venv_bin / "pip", "exit 0\n")
     result = run_shell(
         activation,
@@ -123,9 +142,10 @@ def test_install_failure_preserves_environment(activation):
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_local_python_creates_venv_when_system_python_is_too_old(activation):
     root, bin_dir, _ = activation
+    install_mock_uv(activation)
     executable(bin_dir / "python", "exit 1\n")
     executable(bin_dir / "python3", "exit 1\n")
-    python_bin = root / ".devtools" / "python" / "cpython-3.11-test" / "bin"
+    python_bin = root / ".devtools" / "python" / "cpython-3.11.17-test" / "bin"
     python_bin.mkdir(parents=True)
     fake_python(python_bin / "python3.11")
     result = run_shell(
@@ -139,11 +159,12 @@ def test_local_python_creates_venv_when_system_python_is_too_old(activation):
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_existing_old_venv_is_backed_up_and_replaced(activation):
     root, bin_dir, _ = activation
+    install_mock_uv(activation)
     venv_bin = root / ".devtools" / "venv" / "bin"
     venv_bin.mkdir(parents=True)
     executable(venv_bin / "python", 'printf "Python 3.9.6\\n"\nexit 1\n')
     executable(venv_bin / "pip", "exit 0\n")
-    python_bin = root / ".devtools" / "python" / "cpython-3.11-test" / "bin"
+    python_bin = root / ".devtools" / "python" / "cpython-3.11.17-test" / "bin"
     python_bin.mkdir(parents=True)
     fake_python(python_bin / "python3.11")
     for name in ("mktemp", "mv"):
@@ -165,7 +186,7 @@ def test_bootstrap_downloads_python_with_cached_uv(activation):
     result = run_shell(activation, ZSH, 'source ./activate.sh || exit 99')
     assert result.returncode == 0, result.stderr
     assert (root / ".devtools" / "venv" / "bin" / "python").exists()
-    assert "Installing repository-local Python 3.11" in result.stdout
+    assert "Installing repository-local Python 3.11.17" in result.stderr
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_fresh_bootstrap_installs_uv_and_python(activation):
@@ -175,6 +196,7 @@ def test_fresh_bootstrap_installs_uv_and_python(activation):
     installer = bin_dir / "mock-installer"
     executable(
         installer,
+        '[ "$UV_VERSION" = 0.13.1 ] || exit 1\n'
         '[ "$UV_NO_MODIFY_PATH" = 1 ] || exit 1\n'
         '[ "$UV_NO_INSTALLER_METADATA" = 1 ] || exit 1\n'
         '/bin/cp "$MOCK_UV" "$UV_INSTALL_DIR/uv"\n',
@@ -209,6 +231,7 @@ def test_failed_download_preserves_environment(activation):
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_existing_venv_activates_without_system_python(activation):
     root, _, _ = activation
+    install_mock_uv(activation)
     venv_bin = root / ".devtools" / "venv" / "bin"
     venv_bin.mkdir(parents=True)
     executable(venv_bin / "python", "exit 0\n")
