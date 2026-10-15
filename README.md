@@ -19,14 +19,23 @@ dev env
 ```
 
 `install.sh` replaces `activate.sh` and provisions both hosts and containers.
-It downloads uv with curl, then uv installs Python and the `devchain` package.
-No system Python or pip is required. Git and tmux are runtime tools supplied by
-the host or project image.
+It reuses an existing Nix installation or downloads the official Nix installer
+with curl. A first host installation creates the system-wide `/nix` store and
+uses the standard Nix daemon installer, which requires sudo. Root container
+builds use a single-user installation without a daemon. The checked-in `flake.nix`
+and `flake.lock` pin the launcher's Python runtime and dependencies. No system
+Python or pip is required. Git and tmux are runtime tools supplied by the host or
+project image.
 
-Host provisioning stays under `.devtools`, with an editable installation of `dev`.
-The script runs in its own shell and leaves any active project virtual environment
-alone. In a container image, the same script runs as root and installs the runtime
-under `/opt/devchain`, with `dev` at `/usr/local/bin/dev`.
+On hosts, `.devtools/runtime` points to the Nix runtime and `.devtools/bin/dev`
+loads the live checkout, so source edits take effect without reinstalling. The
+script runs in its own shell and leaves any active project virtual environment
+alone. In a container image, it installs the packaged runtime at
+`/opt/devchain/runtime`, with `dev` at `/usr/local/bin/dev`. The package and its
+dependencies live in `/nix/store`; the Feature staging directory can be removed
+after installation. The runtime output links keep these packages reachable by
+Nix garbage collection. Re-run `install.sh` after moving a host checkout to update
+its wrapper and garbage-collection root.
 
 ## Enter Dev
 
@@ -67,10 +76,12 @@ We also use git worktrees under the hood.
 
 ## Running tests
 
-After installation, run the tests from the repository root:
+After installation, run the tests from the repository root. The installer enables
+flake support for its own commands; include these flags unless your Nix
+configuration already enables `nix-command` and `flakes`:
 
 ```sh
-.devtools/uv run --extra dev pytest
+nix --extra-experimental-features 'nix-command flakes' develop --command python -m pytest
 ```
 
 For container checks, run `make build`, then `make test`. `make smoke` checks the
@@ -257,7 +268,7 @@ cd ~/.vim/bundle/YouCompleteMe
 ## Development container
 
 The devcontainer provides Ubuntu 24.04 with Git, Vim, tmux, Zsh, Python, pytest,
-and ShellCheck. The [devchain Feature](features/README.md) installs `dev` with uv.
+and ShellCheck. The [devchain Feature](features/README.md) installs `dev` with Nix.
 It uses the non-root `vscode` user with sudo access and Bash as the default
 VS Code terminal. Dotfile activation is manual, so you can choose which
 configurations to try inside the container.

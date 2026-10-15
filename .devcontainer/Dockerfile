@@ -11,6 +11,7 @@ RUN apt-get update \
         shellcheck \
         tmux \
         vim \
+        xz-utils \
         zsh \
     && rm -rf /var/lib/apt/lists/*
 
