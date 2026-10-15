@@ -14,8 +14,10 @@ and OpenCode, with Ghostty on my Mac.
 
 Dotfiles should supply useful, versioned defaults. Projects choose their own
 runtimes, checkers, and settings, and I should be able to see which ones are
-active. Today this repository has personal configuration, installation scripts,
-and an Ubuntu 24.04 devcontainer. The launcher and Feature below are planned.
+active. This repository contains personal configuration, installation scripts,
+the Python launcher, an initial personal devtools Feature, and its own Ubuntu
+24.04 devcontainer. Host distribution and runtime-managed container launch remain
+planned.
 
 ## Approach
 
@@ -170,6 +172,14 @@ matches the commands actually run. `dev test` uses the combined production setup
 to check project overrides, unavailable tools, and disabled integrations.
 
 ## Package the toolset and add container environments
+
+The first packaging slice is implemented in `features/src/devtools` and described
+in [the Feature guide](../features/README.md). Both this project's ARM64 image and
+the separate `agents-model` project's x86-64 image consume it. Each project owns
+its toolchain and a single `.devcontainer/` image; the Feature supplies the
+launcher and personal applications. The remaining work below includes versioned
+distribution, complete toolset activation, reproducible inputs, and host-side
+container lifecycle management.
 
 After the host baseline, package the selected tools and defaults as a versioned
 Dev Container Feature and add `dev env enter container` and `dev env rebuild`.
