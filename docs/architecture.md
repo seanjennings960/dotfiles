@@ -20,6 +20,12 @@ lockfiles, build/test commands, and code policy. Applications resolve their own
 settings and own their generated data. Personal operations preserve project and
 existing user configuration, report conflicts, and are safe to repeat.
 
+Each project owns one definitive devcontainer image and its project toolchain
+under `.devcontainer/`. The reusable personal devtools Feature adds the launcher
+and personal applications to that image. The dotfiles repository owns the Feature
+definition and also consumes it in its own project devcontainer. Project tools,
+such as ProB for a CSP modeling project, belong to that project's Dockerfile.
+
 ## Security and agent isolation
 
 Treat agents and the code they execute as untrusted. Agents start in containers,
@@ -144,19 +150,30 @@ Agent selection and authorization options remain to be specified.
 
 | Component | Responsibility |
 | --- | --- |
-| Python and Click | The macOS host launcher, installed with `brew install dotfiles` and its own Python runtime. Personal tools install separately. |
+| Python and Click | The launcher runs on the host and inside project containers. Shared code creates its private virtual environment and installs the package; host and container adapters provide Python and handle platform integration. Homebrew host packaging is planned. |
 | Ghostty or another terminal | Host terminal input and rendering. |
 | tmux | Layout, keyboard navigation, running sessions, attachment and detachment. |
 | Shell | Interactive execution and completion; evaluate Zsh after a Bash baseline. |
 | Neovim and OpenCode | Editing, code checks, agent execution, diff review, and their own undo/conversation state. |
 | Docker and Dev Container CLI | Container execution, image caching, volumes, limits, and project setup. |
-| Personal Dev Container Feature | Versioned packaging of personal tools and defaults outside project configuration. |
+| Personal Dev Container Feature | The dotfiles-owned installation layer for the launcher, personal tools, and defaults in each project's image. |
 
 Start with Ubuntu 24.04 on `linux/arm64`, using `apt-get` and tool-specific
 installers; host tools need macOS-compatible adapters. Python, Ruff, and Pyright
 come first. Language profiles are internal bundles of independently enabled
 runtime, formatter, diagnostics, and language-intelligence integrations. LSP is
 one mechanism, not a requirement for every tool.
+
+The initial Feature is in `features/src/devtools`. Local development stages a
+self-contained source bundle beneath the consuming project's `.devcontainer/`;
+see [Feature packaging](../features/README.md). The launcher is also tested in
+the separate `agents-model` project's `linux/amd64` image, which selects x86-64
+for ProB. On Apple Silicon that image runs under emulation.
+
+`dotfiles_dev/install_launcher.py` owns the platform-independent launcher
+installation steps. `activate.sh` provisions the host Python runtime and exposes
+the installed command in the sourcing shell. The Feature installer provisions
+Debian packages and links the command into the container's system path.
 
 Use `.editorconfig`, project environments such as `.venv`, checker settings such
 as `pyproject.toml`, and OpenCode's existing configuration resolution. Merge only
