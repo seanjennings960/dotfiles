@@ -1,0 +1,9 @@
+{
+    "id": "devchain",
+    "version": "0.1.0",
+    "name": "Devchain",
+    "description": "Install the dev CLI with uv in an isolated Python environment.",
+    "containerEnv": {
+        "DEV_ENVIRONMENT": "container"
+    }
+}

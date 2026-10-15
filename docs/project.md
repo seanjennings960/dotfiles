@@ -14,13 +14,14 @@ and OpenCode, with Ghostty on my Mac.
 
 Dotfiles should supply useful, versioned defaults. Projects choose their own
 runtimes, checkers, and settings, and I should be able to see which ones are
-active. Today this repository has personal configuration, installation scripts,
-and an Ubuntu 24.04 devcontainer. The launcher and Feature below are planned.
+active. Today this repository has personal configuration, the `dev` launcher,
+an Ubuntu 24.04 devcontainer, and a [devchain Feature](../features/README.md).
+The shared `install.sh` provisions the launcher with uv on hosts and in images.
 
 ## Approach
 
 Build the host launcher first, then deliver the personal tools and integrations
-through it. Use Python and Click with a Homebrew-managed Python runtime, separate
+through it. Use Python and Click with a uv-managed Python runtime, separate
 from project environments. Start with human host work on macOS; add container
 entry after the local workflow works. The first container target is Ubuntu 24.04
 on `linux/arm64`.

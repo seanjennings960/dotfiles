@@ -3,29 +3,30 @@
 `dev` is a tmux-based CLI designed to operate as a common operating environment
 between human and llm-based agents.
 
-See the [roadmap](docs/project.md) for the planned terminal-first environment,
-Dev Container Feature, and host-side `dev` launcher, and the
-[architecture](docs/architecture.md) for how they fit together.
+See the [roadmap](docs/project.md), [architecture](docs/architecture.md), and
+[devchain Feature](features/README.md) documentation.
 
 ## Installation
 
-The current installation workflow assumes `git`, `curl`, and `zsh`. In a `zsh`
-shell, run:
+Run the installer from a checkout:
 
-```zsh
+```sh
 git clone https://github.com/seanjennings960/dotfiles
 cd dotfiles
-source ./activate.sh
-dev --version
+sh ./install.sh
+export PATH="$PWD/.devtools/bin:$PATH"
+dev env
 ```
 
-Tested natively on MacOS, and also an Ubuntu container (TODO: add link to
-CI here).
+`install.sh` replaces `activate.sh` and provisions both hosts and containers.
+It downloads uv with curl, then uv installs Python and the `devchain` package.
+No system Python or pip is required. Git and tmux are runtime tools supplied by
+the host or project image.
 
-A more robust installation mechanism is planned. (Although, I guess the
-current setup is not too far off the `curl` oneliner which is so common
-between modern-day installations. I guess a platform-aware Bash script
-is about as universal as it gets. TODO: productionize installation)
+Host provisioning stays under `.devtools`, with an editable installation of `dev`.
+The script runs in its own shell and leaves any active project virtual environment
+alone. In a container image, the same script runs as root and installs the runtime
+under `/opt/devchain`, with `dev` at `/usr/local/bin/dev`.
 
 ## Enter Dev
 
@@ -66,17 +67,14 @@ We also use git worktrees under the hood.
 
 ## Running tests
 
-After sourcing `activate.sh`, run the tests from the repository root:
+After installation, run the tests from the repository root:
 
 ```sh
-python -m pytest
+.devtools/uv run --extra dev pytest
 ```
 
-The activation tests require Bash and Zsh. Pytest skips tests for shells that
-are not installed.
-
-TODO: Make a `dev test` command which aliases to `python -m pytest` for now. We'll
-do automatic test discovery later
+For container checks, run `make build`, then `make test`. `make smoke` checks the
+repository's devcontainer. These commands require Docker and Dev Container CLI.
 
 
 
@@ -258,7 +256,8 @@ cd ~/.vim/bundle/YouCompleteMe
 
 ## Development container
 
-The devcontainer provides Ubuntu 24.04 with Git, Vim, tmux, Zsh, and ShellCheck.
+The devcontainer provides Ubuntu 24.04 with Git, Vim, tmux, Zsh, Python, pytest,
+and ShellCheck. The [devchain Feature](features/README.md) installs `dev` with uv.
 It uses the non-root `vscode` user with sudo access and Bash as the default
 VS Code terminal. Dotfile activation is manual, so you can choose which
 configurations to try inside the container.
