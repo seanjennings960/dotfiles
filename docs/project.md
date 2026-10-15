@@ -3,221 +3,225 @@
 ## Goal
 
 This project has two goals:
-1. Develop a terminal-based custom IDE for interactive, reproducible programming.
+1. Develop a terminal-first IDE for understanding and changing programs through
+   inspection, executable examples, and reproducible experiments.
 2. Codify and improve my software development processes.
 
 I want to explore, understand, and edit agent-generated code, rather than let
-coding speed outstrip my understanding of it. I also want to bring my
-terminal-first workflow to a new machine or an existing project devcontainer,
-then reconnect to work on remote machines. The core is tmux, Neovim, a shell,
-and OpenCode, with Ghostty on my Mac.
+coding speed outstrip my understanding of it. The working loop is: read, predict,
+experiment, inspect, change, verify, and review. Feedback should remain useful
+while code is unfinished, with unresolved information and stale results visible.
 
-Dotfiles should supply useful, versioned defaults. Projects choose their own
-runtimes, checkers, and settings, and I should be able to see which ones are
-active. Today this repository has personal configuration, installation scripts,
-and an Ubuntu 24.04 devcontainer. The launcher and Feature below are planned.
+The core is tmux, Neovim, a shell, and OpenCode, with Ghostty on my Mac. Personal
+tools should follow me between projects and environments. Projects retain their
+own dependencies, settings, and build/test policy. The [architecture](architecture.md)
+defines those ownership boundaries and the contracts for explanations, execution,
+and agent isolation. This document defines delivery order and completion checks.
+
+## Delivery starting point
+
+At this revision, `master` contains personal configuration, legacy installation
+scripts, and an Ubuntu 24.04 devcontainer. The following implementations are in
+open PRs; their presence in a worktree does not make them an integrated release.
+
+| Work | Existing PRs and integration notes |
+| --- | --- |
+| Launcher, activation, checks, and PR guidance | #14, #15, and #6; #25-38 split the alternative consolidation in closed #24. Reconcile overlapping implementations before merging. |
+| Shell, editor, tmux, and Python | #16-19; preserve the findings and behavioral checks, including overlap with #3, #8, and #9. |
+| Learning material | #22 supplies the Zsh tutorial and fixed demonstrations; #23 evaluates simplification and prerequisite ordering. |
+| Agent history | #39 proposes searchable OpenCode transcripts. |
+| Container context and Feature packaging | #40 builds on #25; #41 builds on #40 and supplies the initial reusable personal devtools Feature. |
+
+Homebrew distribution, full tool lifecycle management, `dev languages`, managed
+container creation, and isolated agent launch remain planned. The comprehension
+workflow below is new work. Reconcile the documentation changes in #38 and #40-41
+against this direction as those implementations land.
 
 ## Approach
 
-Build the host launcher first, then deliver the personal tools and integrations
-through it. Use Python and Click with a Homebrew-managed Python runtime, separate
-from project environments. Start with human host work on macOS; add container
-entry after the local workflow works. The first container target is Ubuntu 24.04
-on `linux/arm64`.
+Deliver one usable investigation workflow at a time, with its behavioral checks
+in the same reviewable change. Begin in the Ubuntu 24.04 ARM64 project environment;
+add native macOS installation and checks as that path becomes available. The
+launcher keeps its runtime separate from project Python environments.
 
-The [architecture](architecture.md) defines the workspace, environment, and
-personal toolset contracts. This plan defines the delivery steps. Keep personal
-selections outside shared project configuration, let applications resolve their
-own settings, and use tmux and Docker metadata for their respective lifecycles.
+Use existing editor, language-server, runtime, and test interfaces first. Add
+coordination only where a concrete user task needs it. Keep architecture focused
+on user contracts and this roadmap focused on delivery. The research behind the
+design is linked in the [architecture references](architecture.md#references).
 
-`dev test` is the entry point for this repository's automated checks. PR #14 adds
-the barebones runner; each feature PR adds its checks to that interface. Projects
-continue to own their test commands, which can run through `dev exec`.
+`dev test` is the proposed common entry point for this repository's checks. Keep
+it a thin wrapper over the chosen test runner, forwarding arguments and exit
+status. Projects own their test commands, which can run through `dev exec`.
+Installation and dependency resolution are explicit setup steps.
 
-## Next steps
+Start each comprehension slice once its prerequisites work: the tutorial needs
+the selected shell and example checks; Python inspection needs the editor and
+analyzer. Broader packaging and tool management can progress alongside them.
+Update the README as commands and workflows become available.
 
-Rework the open PRs in the order below. Each PR should work through the launcher
-and test normal configured startup in isolated homes and workspaces. PR #18 uses
-the shell directory contract from #16; PR #19 uses the Neovim startup from #17.
-Update the README as each command becomes available.
+## 1. Integrate a reliable inspection and execution baseline
 
-### 1. PR #14: host launcher and barebones `dev test`
+Integrate the existing work before relying on it in a comprehension feature:
 
-- Add the Python launcher with Click commands and Homebrew installation. Give it
-  its own runtime and report missing personal tools without installing them during
-  entry. An active project virtual environment must not affect the launcher.
-- Discover the enclosing Git worktree, treating each worktree as a distinct
-  workspace. Support an explicit workspace path and invocation outside a project.
-  Preserve the invocation directory when it is inside the workspace.
-- Implement the initial host commands below. Bare `dev` enters human host work
-  and reconnects through local tmux session metadata. `dev exec` works without
-  interactive entry and preserves arguments, directory, streams, exit status,
-  and terminal behavior. Environment context stays local to the invocation.
-- Add locked development dependencies and a thin `dev test` runner. Initially
-  run launcher tests, forward test-runner arguments, and return failures through
-  the exit status. Add fixtures for isolated homes, workspaces, and terminal input
-  as needed. The initial runner needs neither the full toolset nor Docker.
+- Launcher and activation: worktree-aware discovery, explicit workspace selection,
+  invocation directories, faithful command execution, and fresh-process tmux
+  reconnection. Activate twice in a non-root home, preserve existing configuration,
+  report conflicts, and roll back failed writes. Keep writable application state
+  outside packaged defaults and use backend metadata for discovery.
+- Shell and tmux: preserve project executable precedence, failed `cd` status, and
+  per-pane logical paths, including spaces and symlinks. Test repeated login,
+  non-login, interactive, and noninteractive startup. Exercise completion, prefix
+  forwarding, concurrent splits, window moves, and copy/paste through real terminal
+  input. Verify delivery to the host clipboard manually.
+- Neovim and Python: use one production startup, pinned plugins, native EditorConfig,
+  and independently selected Python, Ruff, and Pyright. Verify editing, saving,
+  navigation, hover, completion, diagnostics, and explicit formatting. Keep
+  application-owned state recoverable and startup free of installation or updates.
+- Effective-tool inspection: report actual executable paths, versions, interpreter,
+  directory, settings sources, and differences between editor, terminal, and agent.
+  Exercise project overrides, unavailable selections, disabled integrations, and
+  the ALE/Pyright settings bridge from #19. Report unresolved choices explicitly.
+- Local container execution: integrate #40-41 so each project owns its definitive
+  image/toolchain and the personal Feature supplies the launcher and personal
+  tools. Distinguish local container use from host-managed creation or rebuild.
 
-```text
-dev                         Enter or reconnect to human host work
-dev env                     Show the host environment and workspace
-dev env enter host          Enter or reconnect to human host work
-dev exec <command>          Run a command in the current environment
-dev test [<test args>]      Run this repository's automated checks
-```
+Use fixtures with an unconfigured Python workspace and two projects selecting
+different interpreters and checker rules. Test through normal activation and
+startup, including missing prerequisites and failed setup without host fallback.
 
-Done when I can install with `brew install dotfiles`, enter host work without
-Docker, reconnect from a fresh launcher, and inspect the workspace and directory
-actually used. `dev test` covers discovery, command forwarding, reconnection, and
-failure reporting on native macOS. Unsupported container requests fail without
-executing on the host.
+Done when the installed workflow can locate a definition, show a real diagnostic,
+run the corresponding project check in the inspected environment, and reconnect
+to the same work. Include the relevant tests with each feature; existing reports
+from separate branches do not replace verification of the integrated setup.
 
-### 2. PR #15: personal tool management and repeatable activation
+## 2. Make the Zsh tutorial executable
 
-- Rework activation around `dev tools`, `dev tools install`, `dev tools upgrade`,
-  and `dev tools remove`. Store exact personal selections outside projects and
-  keep installation separate from environment entry. Use macOS installers first
-  and Ubuntu adapters for the container target.
-- Record installation ownership and report unavailable versions, conflicts, and
-  individual failures. Upgrades record the new selection; removal affects only
-  personally managed installations and retains dependencies needed by other tools.
-- Apply defaults for the current development user. Preserve existing user and
-  project configuration, report conflicts, and make repeated activation safe.
-  Existing install scripts should delegate to the same implementation.
-- Keep writable application data separate from packaged configuration. Let
-  Neovim and OpenCode own their state locations. `dev tools` must distinguish
-  desired selections from installed versions, paths, ownership, and failures.
+Build on #22's context, arguments, execution, and interaction model. Deliver the
+notebook-like interaction requested in its review:
 
-Done when a fresh non-root home can install and activate twice through `dev`,
-existing configuration survives, and failed installs leave an accurate report.
-`dev test` covers repeatability, conflicts, ownership-aware removal, and upgrade
-failures. Project dependencies and lockfiles remain unchanged.
+- Read an explanation, select and edit its example, run it, and inspect exact
+  source, stdout, stderr, and exit status. Link unfamiliar constructs to their
+  prerequisites and language documentation.
+- Use the same example source for interactive execution and automated expected
+  results. Replace the disconnect between chapter snippets and fixed demonstrations.
+- Declare setup, inputs, working directory, and interpreter. Identify fresh versus
+  shared sessions, execution order, and reset behavior. Editing an example makes
+  its previous output visibly stale; retain that output for comparison.
+- Use disposable practice state and bounded execution with timeout cleanup.
+  Integrate example checks with the repository test entry point. Keep the tutorial's
+  directory-selection helper distinct from the architecture's workspace concept.
 
-### 3. PR #16: shell startup and project environment selection
+Done when I can predict the arguments or pipeline status of a chapter example,
+run a variation, explain the difference, and reproduce its expected result through
+the automated checks. Verify keyboard use, reset/replay, failures, and missing
+prerequisites. Try an unfamiliar variation with a reader to evaluate understanding
+separately from the example's technical correctness.
 
-- Make Bash the working baseline and evaluate Zsh before choosing the supported
-  shell. Load personal defaults through the activation from #15, preserving
-  user startup files and avoiding installation or network access during startup.
-- Preserve project and virtual-environment executable precedence. Verify login,
-  non-login, interactive, and noninteractive behavior, including repeated sourcing.
-- Track each tmux pane's working directory after successful changes. Preserve
-  failed `cd` status and directory state; a bookkeeping failure must not turn a
-  successful directory change into a failure.
-- Add real terminal-input checks for path and Git-branch completion, including
-  spaces and logical symlink paths. Document the Bash/Zsh comparison for manual
-  evaluation on the host terminal.
+## 3. Connect Python explanations to controlled experiments
 
-Done when shells entered through `dev` use the expected project executables,
-complete paths and Git branches, and preserve user startup behavior. `dev test`
-covers failed `cd`, repeated startup, and independent pane directories.
+Once editor and analyzer integration works, this can proceed alongside the
+tutorial. Bring the same investigation loop to ordinary project code:
 
-### 4. PR #17: Neovim baseline and application-owned state
+- Select an expression, binding, or diagnostic in Neovim. Show available type and
+  definition information, related source, and the actual analyzer/configuration.
+  Offer concise explanations with deeper mechanisms and examples on request.
+- Preserve useful inspection through incomplete edits where the backend supports
+  it. Identify blocked regions and missing capabilities. Execute only a selected
+  complete unit with its declared inputs and setup; an analyzer's recovery tree
+  does not make an incomplete buffer executable by CPython.
+- Record the exact source snapshot used for execution, including the distinction
+  between an unsaved buffer and disk. Attach interpreter, dependencies, directory,
+  inputs, and relevant runtime history to results. Mark known input changes stale
+  and expose untracked external state as a reproducibility limit.
+- Show relevant values or traces and compare a counterfactual edit. Begin with
+  fresh, controlled execution. Specify reset behavior before offering shared
+  sessions; defer cached reuse until its dependency/effect contract is tested.
 
-- Consolidate Vim settings into one working Neovim startup loaded by normal
-  activation. Keep useful, pinned plugins and remove obsolete configuration;
-  startup must not download or update plugins.
-- Use native EditorConfig and Neovim settings resolution. Preserve project code
-  policy and support explicit personal plugin trials without rewriting projects.
-- Store undo, swap, and backup data outside packaged configuration. Prepare for
-  persistent storage scoped to the workspace and user when container recreation
-  is added.
-- Test actual editing, saving, mappings, project indentation, and undo from a new
-  Neovim process through the production startup. Check terminal rendering and
-  system clipboard delivery manually on Ghostty.
+Use list aliasing/mutation and interpreter-dependent imports as initial cases.
+Done when I can follow an explanation to its source evidence, reproduce the
+behavior, inspect a proposed change, and check its intended effect. Cover unsaved
+edits, changed environments, incomplete code, stale results, and reset. Evaluation
+through a debugger or probe follows the same execution contract as a command.
 
-Done when Neovim launched in the `dev` workspace uses the intended configuration,
-project indentation takes effect, and a new process can undo a known saved edit.
-`dev test` exercises normal startup and reports missing plugins or broken local
-configuration. Python integration follows in #19.
+## 4. Connect agent explanations and continuous review
 
-### 5. PR #18: tmux navigation, pane paths, and reconnection
+- Give humans and agents access to the same versioned, source-linked evidence.
+  Start with supported language queries; investigate ChatLSP-style expected types
+  and relevant definitions where the backend exposes them. Keep inferred types,
+  expected types, runtime observations, and generated hypotheses distinguishable.
+- Connect a proposed change to its intent, affected code, experiments, test results,
+  and review decisions. Build on #39 for history access while letting OpenCode own
+  its transcripts. Record the starting revision, environment, and conversation ID.
+- Let the user choose whether to propose a result and have it checked or request
+  a suggestion. An explanation request does not itself apply the suggested edit
+  or execute the selected program. Agent-run experiments require the isolated
+  execution support described below.
 
-- Repair prefix forwarding, layout, split, and window bindings using the shell
-  directory contract from #16. New panes and windows inherit the source pane's
-  directory, including spaces and logical symlink paths.
-- Keep session identity scoped to the workspace and environment. Discover tmux
-  sessions rather than maintaining a launcher registry. Reconnection preserves
-  running processes and their directories; detaching leaves them running.
-- Avoid global directory handoffs that mix concurrent pane requests. Verify
-  independent workspaces and source panes while another session is active.
-- Exercise bindings through an attached terminal, including copy/paste and
-  emitted clipboard sequences. Verify delivery to the host clipboard manually.
+Done when a reviewer can trace a claim from a diff to its supporting source and
+execution, reproduce a check, and identify unsupported assumptions. Verify that
+history for an older revision is not presented as current evidence. Keep project
+CI and merge policy project-owned.
 
-Done when a fresh `dev` process reconnects to the right host session, concurrent
-splits keep their intended directories, and the prefix reaches nested programs.
-`dev test` covers the real shell/tmux combination and confirms that leaving a
-shell does not make the launcher destroy other work.
+## 5. Prototype stronger semantics where the workflow needs them
 
-### 6. PR #19: Python integrations and effective-tool inspection
+Evaluate these research directions against concrete failures in the earlier
+milestones. Each prototype needs a supported language/operation scope, a stated
+guarantee, counterexamples outside that scope, and an end-to-end demonstration.
 
-- Supply personal Python, Ruff, and Pyright with their execution dependencies
-  through the tool management from #15. Keep runtime, formatter, diagnostics, and
-  language-intelligence selections independent.
-- Add Python editing, linting, formatting, and type checking to the normal
-  Neovim startup from #17. Use application resolution for project environments
-  and checker settings; do not introduce a second configuration resolver.
-- Implement `dev languages` inspection of enabled and effective integrations.
-  Report versions, executable paths, runtime selection, settings sources, and
-  differences between editor, terminal, and agent checks. Report unresolved
-  selections as unresolved rather than inferring them from file presence.
-- Test personal defaults and projects that choose their own Python, checker,
-  and code policy independently. Unavailable project-selected tools must fail
-  visibly; disabling an integration must preserve shared tools and project files.
+| Direction | Question to resolve before adoption |
+| --- | --- |
+| Contextual documentation and type slicing | Can the backend explain why a type is inferred or expected and expose the supporting source, including errors? |
+| Syntax recovery with explicit obligations | Can unfinished syntax remain inspectable without silently guessing the intended repair? Compare Tylr-style obligations with existing recovery. |
+| Filtered stepping and rich probes | Can users choose useful trace detail or inspect a value while preserving source correspondence? Any view-driven edit must produce reviewable source. |
+| Incremental Python execution | Under which aliasing, mutation, import, native-code, and external-effect assumptions does reuse agree with a fresh run? Compare marimo and IPyflow; test invalidation boundaries. |
+| Hole-aware execution | What runtime extension and supported Python subset would give missing expressions meaning? Study Hazel's effect and resumption limits. |
+| Structural collaboration | Can stable identities and edit histories preserve inspectable conflicts? Evaluate Grove against the current Git-based review workflow. |
 
-Done when editing, linting, formatting, and type checking work with defaults and
-with two Python projects that choose different environments and rules. Inspection
-matches the commands actually run. `dev test` uses the combined production setup
-to check project overrides, unavailable tools, and disabled integrations.
+Semantic inspection, re-evaluation, and migration of a running process remain
+separate capabilities. Report formal guarantees, runtime benchmarks, and reader
+outcomes with their respective scope and assumptions.
 
-## Package the toolset and add container environments
+## Supporting environment work
 
-After the host baseline, package the selected tools and defaults as a versioned
-Dev Container Feature and add `dev env enter container` and `dev env rebuild`.
-Extend `dev exec` and inspection to the invoking container environment.
+Continue the infrastructure contracts alongside the comprehension milestones:
 
-- Keep Feature selection outside shared project configuration. Pin its release
-  or digest and the tested Dev Container CLI version. Validate project hooks,
-  mounts, and privileges against user grants, including separate authorization
-  for host-side hooks. Failed or missing container setup must stop execution.
-- Test image/Dockerfile and Compose projects, setup hooks, and projects with and
-  without lockfiles. Activate for the configured development user and resolve
-  tools after project setup. Discover containers through Docker metadata.
-- Persist Neovim undo and OpenCode history in storage scoped to the workspace and
-  user. Rebuild ends running processes but retains workspace files and saved state;
-  reconnecting to a live environment preserves its processes.
-- Record code revision, platform, base environment, dependency and configuration
-  inputs, commands, and required services. Reuse compatible builds and verify
-  offline creation with cached prerequisites; report missing or unpinned inputs.
-- Add temporary container installations with visible runtime drift and explicit
-  promotion into the personal or project specification. Recreation discards
-  temporary packages. Keep privileged installation in trusted, constrained steps.
-- Measure cached startup, per-environment memory, and concurrent test throughput
-  before choosing resource budgets or committing to swarm scale. Apply resource
-  limits to each environment.
+- **Personal tools:** implement exact selections, install/upgrade/remove, ownership,
+  and desired-versus-installed inspection. Preserve shared dependencies and project
+  lockfiles; test conflicts, disabled integrations, and partial upgrade failures.
+  Keep offline configuration activation separate from installation.
+- **Distribution:** package versioned tools/defaults through the personal Feature
+  and add Homebrew launcher distribution with macOS installer adapters. Test the
+  declared platforms natively and report emulation separately.
+- **Managed containers:** implement host-side entry and rebuild, preserving project
+  pins and permitted hooks. Cover image/Dockerfile and Compose projects, present
+  and absent lockfiles, failed setup, and tools installed during setup. Discover
+  through Docker metadata and keep personal selections outside shared configuration.
+- **Persistence and efficiency:** verify application-history recovery after
+  recreation while distinguishing process lifetime. Record reproducible inputs,
+  test cached offline setup, report missing inputs, and make temporary-install
+  drift explicit. Measure startup, memory, and concurrent-test throughput before
+  choosing budgets or scaling agent counts.
+- **Isolated agents:** enforce the architecture's workspace, state, privilege,
+  filesystem, and network boundaries before implementing `dev agent start`.
+  Concurrent agents must not modify each other's state or access ungranted host
+  resources. Coordinate any shared mutable resources explicitly; cache immutable
+  inputs read-only. Prototype scoped channels only for demonstrated sharing needs.
 
-Done when either Python project can launch, reconnect, and rebuild without
-changing shared configuration or lockfiles. `dev test` covers failed setup without
-host fallback, cached offline creation, saved undo/history recovery, and discarded
-temporary installs. Run native macOS checks on a Mac and report emulation separately.
+Done when either configured Python project can enter, reconnect, and rebuild
+without changing shared configuration or lockfiles, with saved history recovered
+and failures accurately reported. Host entry must work independently of Docker.
+Native macOS checks must exercise the installed runtime and real terminal path.
 
-## Later
+Remote SSH reconnection, Rust/Julia language support, and phone or voice interfaces
+follow demonstrated local workflows. Extend existing authentication and PR tooling
+as remote integration needs it. A Rust launcher rewrite requires a concrete need.
 
-- Implement `dev agent start` with independent workspace copies, writable
-  application state, and build/test resources. Enforce the architecture's
-  non-root runtime, filesystem, privilege, and network restrictions before
-  enabling launches. Test that concurrent agents cannot modify each other's
-  source or state and cannot reach ungranted host resources. Human host entry
-  does not authorize host-agent execution.
-- Keep agent changes and execution history available for review, linked to the
-  starting revision and environment inputs. Return commits or pull requests;
-  projects retain ownership of CI and integration policy.
-- Reconnect to remote work through SSH and tmux. Investigate OpenCode plugins,
-  its server API, and existing integrations before building coordination.
-- Add Rust and Julia using the same independent runtime/checker selections.
-- Prototype scoped Unix socket channels and user/group provisioning where
-  explicitly granted sharing needs them. Share immutable caches read-only and
-  require an owner and write-coordination rule for shared mutable resources.
-- Investigate GitHub authentication and a reusable PR skill when implementing
-  credential and remote integrations. Phone and voice clients can follow.
-- Consider a Rust CLI only if the implementation needs it. Choose detailed
-  schemas, UI indicators, and broader platform support as requirements emerge.
+## Evaluation
+
+Automated checks verify accurate evidence, reproducible examples, and the declared
+execution contracts. Human evaluation asks whether I can predict, explain,
+diagnose, and modify an unfamiliar variation after using the tools. Record
+prediction/transfer accuracy, successful repairs, assistance, and confidence on
+comparable tasks. Distinguish aided completion from independent reasoning and
+revisit concepts later when retention matters. Neither a passing test suite nor
+shorter completion time establishes understanding.
