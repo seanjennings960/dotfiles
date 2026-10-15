@@ -1,0 +1,9 @@
+{
+    "id": "devchain",
+    "version": "0.1.0",
+    "name": "Devchain",
+    "description": "Install the dev CLI with a Nix-pinned Python runtime and dependencies.",
+    "containerEnv": {
+        "DEV_ENVIRONMENT": "container"
+    }
+}

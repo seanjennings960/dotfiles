@@ -1,22 +1,22 @@
 [build-system]
-requires = ["setuptools>=70"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dotfiles-dev"
+name = "devchain"
 version = "0.1.0"
 description = "Host workspace launcher for personal development"
 requires-python = ">=3.11"
-dependencies = ["click==8.3.3"]
+dependencies = ["click>=8.1,<9"]
 
 [project.scripts]
 dev = "dotfiles_dev.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest==8.4.2", "pexpect==4.9.0"]
+dev = ["pytest>=8,<9", "pexpect>=4.9,<5"]
 
-[tool.setuptools]
-packages = ["dotfiles_dev"]
+[tool.setuptools.packages.find]
+include = ["dotfiles_dev*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
