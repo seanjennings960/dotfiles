@@ -5,7 +5,9 @@ if [ "$(id -u)" -ne 0 ]; then
     echo "The devtools Feature must run as root during image construction." >&2
     exit 1
 fi
-if [ ! -f ./launcher/pyproject.toml ]; then
+feature_dir=$(pwd -P)
+launcher_source="$feature_dir/launcher"
+if [ ! -f "$launcher_source/pyproject.toml" ]; then
     echo "Missing launcher payload. Run scripts/prepare_feature.py first." >&2
     exit 1
 fi
@@ -26,7 +28,7 @@ mkdir -p "$destination"
 /usr/bin/python3 ./launcher/dotfiles_dev/install_launcher.py \
     --python /usr/bin/python3 \
     --venv "$destination/venv" \
-    --source ./launcher \
+    --source "$launcher_source" \
     --force-reinstall
 ln -sfn "$destination/venv/bin/dev" /usr/local/bin/dev
 cp ./source.json "$destination/source.json"
