@@ -93,49 +93,6 @@ function _dotfiles_dev_select_python {
   print -r -- "$python_cmd"
 }
 
-function _dotfiles_dev_prepare_venv {
-  local python_cmd venv_dir tools_dir backup_dir rebuild_venv=0
-  python_cmd="$1"
-  venv_dir="$2"
-  tools_dir="$3"
-
-  if [[ -L "$venv_dir" ]]; then
-    _dotfiles_dev_log "Refusing to use a symlink at $venv_dir; remove or rename it and retry."
-    return 1
-  fi
-  if [[ -d "$venv_dir" ]]; then
-    if [[ ! -x "$venv_dir/bin/python" ]]; then
-      _dotfiles_dev_log "$venv_dir exists but is not a usable Python virtual environment. Move it aside and retry."
-      return 1
-    fi
-    if "$venv_dir/bin/python" -c 'import sys; assert sys.version_info >= (3, 11)' 2>/dev/null; then
-      return 0
-    fi
-    rebuild_venv=1
-  fi
-
-  if ! "$python_cmd" -m venv --help >/dev/null 2>&1; then
-    _dotfiles_dev_log "The selected Python does not provide the venv module."
-    return 1
-  fi
-  if [[ "$rebuild_venv" == 1 ]]; then
-    backup_dir=$(command mktemp -d "$tools_dir/venv-backup.XXXXXXXX") || {
-      _dotfiles_dev_log "Could not create a backup directory for the old virtual environment."
-      return 1
-    }
-    if ! command mv "$venv_dir" "$backup_dir/venv"; then
-      _dotfiles_dev_log "Could not preserve the old virtual environment at $backup_dir/venv."
-      return 1
-    fi
-    print -- "Preserved the old virtual environment at $backup_dir/venv"
-  fi
-  print -- "Creating repository virtual environment at $venv_dir"
-  if ! "$python_cmd" -m venv "$venv_dir"; then
-    _dotfiles_dev_log "Could not create the repository virtual environment."
-    return 1
-  fi
-}
-
 function _dotfiles_dev_activate {
   emulate -L zsh
   setopt PIPE_FAIL
@@ -164,17 +121,10 @@ function _dotfiles_dev_activate {
   if [[ -z "$python_cmd" ]]; then
     python_cmd=$(_dotfiles_dev_select_python "$python_dir" "$tools_dir") || return 1
   fi
-  if ! _dotfiles_dev_prepare_venv "$python_cmd" "$venv_dir" "$tools_dir"; then
-    return 1
-  fi
-  if [[ ! -x "$venv_dir/bin/python" ]]; then
-    _dotfiles_dev_log "$venv_dir exists but is not a usable Python virtual environment. Move it aside and retry."
-    return 1
-  fi
-
   print -- "Installing the editable dev entrypoint"
-  if ! "$uv_cmd" pip install --python "$venv_dir/bin/python" --editable "$repo_root"; then
-    _dotfiles_dev_log "Could not install the dev entrypoint. Check package index access and retry."
+  if ! "$python_cmd" "$repo_root/dotfiles_dev/install_launcher.py" \
+    --python "$python_cmd" --venv "$venv_dir" --source "$repo_root" --editable; then
+    _dotfiles_dev_log "Could not prepare the launcher virtual environment. Check package index access and retry."
     return 1
   fi
 
@@ -187,8 +137,8 @@ function _dotfiles_dev_activate {
 # Test the result so ERR_EXIT cannot interrupt cleanup. The caller must also
 # handle a nonzero source status when running with ERR_EXIT / set -e.
 if _dotfiles_dev_activate; then
-  unfunction _dotfiles_dev_activate _dotfiles_dev_find_python _dotfiles_dev_install_uv _dotfiles_dev_select_python _dotfiles_dev_prepare_venv _dotfiles_dev_log
+  unfunction _dotfiles_dev_activate _dotfiles_dev_find_python _dotfiles_dev_install_uv _dotfiles_dev_select_python _dotfiles_dev_log
 else
-  unfunction _dotfiles_dev_activate _dotfiles_dev_find_python _dotfiles_dev_install_uv _dotfiles_dev_select_python _dotfiles_dev_prepare_venv _dotfiles_dev_log
+  unfunction _dotfiles_dev_activate _dotfiles_dev_find_python _dotfiles_dev_install_uv _dotfiles_dev_select_python _dotfiles_dev_log
   return 1
 fi

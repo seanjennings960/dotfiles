@@ -10,6 +10,11 @@ Python 3.11 or newer. The launcher uses `/opt/dotfiles-dev/venv`, independently 
 project virtual environments. Python, pip, and project executable precedence are
 not redirected to that private environment.
 
+Launcher virtual-environment creation and package installation use the shared
+`dotfiles_dev/install_launcher.py` helper. The Feature keeps Debian package
+installation, root checks, and the system command link in `install.sh`; host
+activation keeps Python bootstrap and shell activation in `activate.sh`.
+
 ## Local development
 
 From the dotfiles checkout:

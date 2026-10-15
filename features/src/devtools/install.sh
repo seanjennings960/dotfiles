@@ -22,7 +22,11 @@ if [ -e /usr/local/bin/dev ] && [ "$(readlink /usr/local/bin/dev)" != "$destinat
     echo "An existing /usr/local/bin/dev is not owned by this Feature." >&2
     exit 1
 fi
-/usr/bin/python3 -m venv "$destination/venv"
-"$destination/venv/bin/python" -m pip install --no-cache-dir --force-reinstall ./launcher
+mkdir -p "$destination"
+/usr/bin/python3 ./launcher/dotfiles_dev/install_launcher.py \
+    --python /usr/bin/python3 \
+    --venv "$destination/venv" \
+    --source ./launcher \
+    --force-reinstall
 ln -sfn "$destination/venv/bin/dev" /usr/local/bin/dev
 cp ./source.json "$destination/source.json"

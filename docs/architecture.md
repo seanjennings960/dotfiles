@@ -150,7 +150,7 @@ Agent selection and authorization options remain to be specified.
 
 | Component | Responsibility |
 | --- | --- |
-| Python and Click | The launcher runs on the host and inside project containers. Homebrew host packaging is planned; the container Feature installs it into a private Python environment. |
+| Python and Click | The launcher runs on the host and inside project containers. Shared code creates its private virtual environment and installs the package; host and container adapters provide Python and handle platform integration. Homebrew host packaging is planned. |
 | Ghostty or another terminal | Host terminal input and rendering. |
 | tmux | Layout, keyboard navigation, running sessions, attachment and detachment. |
 | Shell | Interactive execution and completion; evaluate Zsh after a Bash baseline. |
@@ -169,6 +169,11 @@ self-contained source bundle beneath the consuming project's `.devcontainer/`;
 see [Feature packaging](../features/README.md). The launcher is also tested in
 the separate `agents-model` project's `linux/amd64` image, which selects x86-64
 for ProB. On Apple Silicon that image runs under emulation.
+
+`dotfiles_dev/install_launcher.py` owns the platform-independent launcher
+installation steps. `activate.sh` provisions the host Python runtime and exposes
+the installed command in the sourcing shell. The Feature installer provisions
+Debian packages and links the command into the container's system path.
 
 Use `.editorconfig`, project environments such as `.venv`, checker settings such
 as `pyproject.toml`, and OpenCode's existing configuration resolution. Merge only
