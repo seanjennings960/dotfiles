@@ -144,7 +144,7 @@ Agent selection and authorization options remain to be specified.
 
 | Component | Responsibility |
 | --- | --- |
-| Python and Click | The macOS host launcher, installed with `brew install dotfiles` and its own Python runtime. Personal tools install separately. |
+| Python and Click | The host and container launcher, installed by `install.sh` with a Nix-pinned Python runtime. Personal tools install separately. |
 | Ghostty or another terminal | Host terminal input and rendering. |
 | tmux | Layout, keyboard navigation, running sessions, attachment and detachment. |
 | Shell | Interactive execution and completion; evaluate Zsh after a Bash baseline. |

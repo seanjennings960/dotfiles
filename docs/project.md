@@ -14,13 +14,15 @@ and OpenCode, with Ghostty on my Mac.
 
 Dotfiles should supply useful, versioned defaults. Projects choose their own
 runtimes, checkers, and settings, and I should be able to see which ones are
-active. Today this repository has personal configuration, installation scripts,
-and an Ubuntu 24.04 devcontainer. The launcher and Feature below are planned.
+active. Today this repository has personal configuration, the `dev` launcher,
+an Ubuntu 24.04 devcontainer, and a [devchain Feature](../features/README.md).
+The shared `install.sh` provisions the launcher with Nix on hosts and in images;
+`flake.lock` pins its runtime and dependencies.
 
 ## Approach
 
 Build the host launcher first, then deliver the personal tools and integrations
-through it. Use Python and Click with a Homebrew-managed Python runtime, separate
+through it. Use Python and Click with a Nix-managed Python runtime, separate
 from project environments. Start with human host work on macOS; add container
 entry after the local workflow works. The first container target is Ubuntu 24.04
 on `linux/arm64`.
@@ -43,7 +45,7 @@ Update the README as each command becomes available.
 
 ### 1. PR #14: host launcher and barebones `dev test`
 
-- Add the Python launcher with Click commands and Homebrew installation. Give it
+- Add the Python launcher with Click commands and Nix installation. Give it
   its own runtime and report missing personal tools without installing them during
   entry. An active project virtual environment must not affect the launcher.
 - Discover the enclosing Git worktree, treating each worktree as a distinct
@@ -66,7 +68,7 @@ dev exec <command>          Run a command in the current environment
 dev test [<test args>]      Run this repository's automated checks
 ```
 
-Done when I can install with `brew install dotfiles`, enter host work without
+Done when I can install with `sh ./install.sh`, enter host work without
 Docker, reconnect from a fresh launcher, and inspect the workspace and directory
 actually used. `dev test` covers discovery, command forwarding, reconnection, and
 failure reporting on native macOS. Unsupported container requests fail without
