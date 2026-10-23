@@ -109,6 +109,20 @@ This install script does the following things:
 * Link .* (dotfiles) on your computer to this directory
 * Initialize and update git submodules for pathogen plugins
 
+### Markdown preview in Vim
+
+Pathogen loads `config/vim/bundle/markdown-preview.nvim`. After initializing the
+submodules, open Vim and install the plugin's prebuilt preview server once:
+
+```vim
+:call mkdp#util#install()
+```
+
+In a Markdown buffer, run `:MarkdownPreview` to open the preview in your browser.
+Use `:MarkdownPreviewStop` to close it or `:MarkdownPreviewToggle` to toggle it.
+The plugin requires Vim 8.1 or newer, or Neovim. Run the install command again
+after updating the plugin to refresh the preview server.
+
 ## Managing Git submodules
 
 Run these commands from the repository root. The parent repository records an

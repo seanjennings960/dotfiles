@@ -37,3 +37,6 @@
 [submodule "vim/bundle/typst.vim"]
 	path = config/vim/bundle/typst.vim
 	url = https://github.com/kaarmu/typst.vim.git
+[submodule "vim/bundle/markdown-preview.nvim"]
+	path = config/vim/bundle/markdown-preview.nvim
+	url = https://github.com/iamcco/markdown-preview.nvim.git
