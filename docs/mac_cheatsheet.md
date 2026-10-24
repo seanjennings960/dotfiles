@@ -2,6 +2,17 @@
 
 Notes for macOS and a Redragon K552-KR external keyboard.
 
+## Customizations
+
+Here are the things that I changed today (October 23, 2026):
+1. Swapped Option (Alt) and Command (Windows) keys on Redragon to match
+  the order of keys on built-in Mac keyboard (at least the Control, Option,
+  Command keys left of the spacebar)
+2. Added Sleep shortcut (Control + Command + Shift + s)
+3. Added hot corners (with Control) to turn off display and lock screen
+4. Modified window tiling keybindings (Control + Option prefix)
+
+
 ## Modifier symbols
 
 | Symbol | Key |
