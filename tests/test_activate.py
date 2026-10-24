@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -18,9 +19,13 @@ def activation(tmp_path):
     shutil.copyfile(ACTIVATE, root / "activate.sh")
     (root / "pyproject.toml").touch()
     (root / "dotfiles_dev").mkdir()
+    shutil.copyfile(ACTIVATE.parent / "dotfiles_dev" / "install_launcher.py",
+                    root / "dotfiles_dev" / "install_launcher.py")
     bin_dir = root / "bin"
     bin_dir.mkdir()
-    return root, bin_dir, {**os.environ, "PATH": str(bin_dir)}
+    return root, bin_dir, {
+        **os.environ, "PATH": str(bin_dir), "REAL_PYTHON": sys.executable,
+    }
 
 
 def run_shell(activation, shell, command):
@@ -43,6 +48,10 @@ def fake_python(path):
         '  /bin/mkdir -p "$3/bin"\n'
         '  /bin/cp "$0" "$3/bin/python"\n'
         '  /bin/cp "$0" "$3/bin/pip"\n'
+        'elif [ "$1" = -m ] && [ "$2" = pip ] && [ "${MOCK_UV_FAIL_PIP:-0}" = 1 ]; then\n'
+        '  exit 1\n'
+        'elif [ "${1##*.}" = py ]; then\n'
+        '  exec "$REAL_PYTHON" "$@"\n'
         'fi\nexit 0\n',
     )
 
@@ -59,8 +68,6 @@ def fake_uv(activation, path):
         '  python_bin="$5/cpython-3.11.17-test/bin"\n'
         '  /bin/mkdir -p "$python_bin"\n'
         '  /bin/cp "$MOCK_PYTHON" "$python_bin/python3.11"\n'
-        'elif [ "$1" = pip ] && [ "$MOCK_UV_FAIL_PIP" = 1 ]; then\n'
-        '  exit 1\n'
         'fi\n',
     )
 
@@ -71,8 +78,7 @@ def install_mock_uv(activation):
     uv.parent.mkdir(parents=True, exist_ok=True)
     executable(
         uv,
-        'if [ "$1" = --version ]; then printf "uv 0.13.1\\n"; '
-        'elif [ "$1" = pip ] && [ "$MOCK_UV_FAIL_PIP" = 1 ]; then exit 1; fi\n',
+        'if [ "$1" = --version ]; then printf "uv 0.13.1\\n"; fi\n',
     )
 
 @pytest.mark.skipif(not BASH, reason="Bash is required")
@@ -125,7 +131,7 @@ def test_install_failure_preserves_environment(activation):
     executable(bin_dir / "python3", "exit 0\n")
     venv_bin = root / ".devtools" / "venv" / "bin"
     venv_bin.mkdir(parents=True)
-    executable(venv_bin / "python", "exit 0\n")
+    fake_python(venv_bin / "python")
     executable(venv_bin / "pip", "exit 0\n")
     result = run_shell(
         activation,
@@ -137,7 +143,7 @@ def test_install_failure_preserves_environment(activation):
     assert result.returncode == 0, result.stderr
     assert "failed:1" in result.stdout
     assert "venv:original function:0" in result.stdout
-    assert "Could not install the dev entrypoint" in result.stderr
+    assert "Could not prepare the launcher virtual environment" in result.stderr
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
 def test_local_python_creates_venv_when_system_python_is_too_old(activation):
@@ -174,7 +180,7 @@ def test_existing_old_venv_is_backed_up_and_replaced(activation):
     backups = list((root / ".devtools").glob("venv-backup.*/venv/bin/python"))
     assert len(backups) == 1
     assert "Python 3.9.6" in backups[0].read_text()
-    assert "Preserved the old virtual environment" in result.stdout
+    assert "Preserved the old virtual environment" in result.stderr
     assert "Python 3.9.6" not in (venv_bin / "python").read_text()
 
 @pytest.mark.skipif(not ZSH, reason="Zsh is required")
