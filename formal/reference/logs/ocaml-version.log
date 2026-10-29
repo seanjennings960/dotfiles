@@ -1,0 +1,5 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/store/mfjm894flhap4am8if8yh3ajz1fmwppl-ocaml-5.4.1/bin/ocamlc -version
+5.4.1
+
+exit status: 0

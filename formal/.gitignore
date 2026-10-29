@@ -1,0 +1,8 @@
+.lake/
+.tools/
+.reference/
+result
+result-*
+*.olean
+*.ilean
+*.c

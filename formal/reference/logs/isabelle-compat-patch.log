@@ -1,0 +1,5 @@
+cwd: /Users/sean/code/dev/dotfiles/formal/reference/work/isabelle-wlt7kmux
+command: patch -p0 -i /Users/sean/code/dev/dotfiles/formal/reference/EvalSTLC-Isabelle2025-2.patch
+patching file EvalSTLC.thy
+
+exit status: 0

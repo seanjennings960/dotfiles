@@ -1,0 +1,5 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/var/nix/profiles/default/bin/nix-build /Users/sean/code/dev/dotfiles/formal/toolchain.nix -A lean4 --no-out-link
+/nix/store/jcaahg1daq98ihbjqmmwnl07wl5p4lfa-lean4-4.29.1
+
+exit status: 0

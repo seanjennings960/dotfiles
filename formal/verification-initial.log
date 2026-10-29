@@ -1,0 +1,148 @@
+Initial aggregate run: native phase exposed a NIX_STORE environment-variable collision, fixed in deployment-check.py.
++ lean --version
+Lean (version 4.29.1, arm64-apple-darwin, commit v4.29.1, Release)
++ lake build
+ℹ [2/12] Replayed Formal.Observation
+info: Formal/Observation.lean:209:0: 'Observation.Partial.certify' does not depend on any axioms
+info: Formal/Observation.lean:210:0: 'Observation.Partial.values_observe' depends on axioms: [propext]
+info: Formal/Observation.lean:211:0: 'Observation.dichotomy_implies_lpo' depends on axioms: [propext]
+ℹ [3/12] Replayed Formal.STLC
+info: Formal/STLC.lean:385:0: STLC.Result.result (STLC.Val.const 31 (STLC.Const.int 31 42))
+info: Formal/STLC.lean:386:0: STLC.Result.result (STLC.Val.const 2 (STLC.Const.int 2 0))
+info: Formal/STLC.lean:387:0: STLC.Result.timeout
+info: Formal/STLC.lean:388:0: STLC.Result.stuck
+ℹ [5/12] Replayed Formal.Soundness
+info: Formal/Soundness.lean:85:0: none
+info: Formal/Soundness.lean:86:0: some "STLC.Val.const 31 (STLC.Const.int 31 42)"
+info: Formal/Soundness.lean:162:0: 'Recursive.soundness' depends on axioms: [propext, Quot.sound]
+info: Formal/Soundness.lean:163:0: 'Recursive.soundness_exact' depends on axioms: [propext, Quot.sound]
+ℹ [6/12] Replayed Formal.Normalization
+info: Formal/Normalization.lean:180:0: 'STLC.Normalization.fundamental' does not depend on any axioms
+info: Formal/Normalization.lean:181:0: 'STLC.Normalization.closed_terminates' does not depend on any axioms
+info: Formal/Normalization.lean:182:0: 'STLC.Normalization.type_safety' does not depend on any axioms
+info: Formal/Normalization.lean:183:0: 'STLC.Normalization.closed_not_diverge' does not depend on any axioms
+✔ [11/12] Built Formal (957ms)
+Build completed successfully (12 jobs).
++ lake env lean Audit.lean
+PASS: audited 3991 project declarations; axioms used: [propext, Quot.sound]
++ lake env lean --run EditorMain.lean
+Hazelnut Figure 2 expression-edit trace:
+  start: ⟨□⟩
+  Hazelnut.Action.var "incr": ⟨"incr"⟩ [v1, Editor.Status.edited]
+  Hazelnut.Action.app: ("incr" ⟨□⟩) [v2, Editor.Status.edited]
+  Hazelnut.Action.var "incr": ("incr" ⦇⟨"incr"⟩⦈) [v3, Editor.Status.edited]
+  Hazelnut.Action.app: ("incr" ⦇("incr" ⟨□⟩)⦈) [v4, Editor.Status.edited]
+  Hazelnut.Action.lit 3: ("incr" ⦇("incr" ⟨3⟩)⦈) [v5, Editor.Status.edited]
+  Hazelnut.Action.move (Hazelnut.Direction.parent): ("incr" ⦇⟨("incr" 3)⟩⦈) [v5, Editor.Status.moved]
+  Hazelnut.Action.move (Hazelnut.Direction.parent): ("incr" ⟨⦇("incr" 3)⦈⟩) [v5, Editor.Status.moved]
+  Hazelnut.Action.finish: ("incr" ⟨("incr" 3)⟩) [v6, Editor.Status.edited]
+  synthesized: some (Hazelnut.Ty.num)
+
+Construct the shadowing example from an empty editor:
+  Hazelnut.Action.ascribe (Hazelnut.Ty.arr (Hazelnut.Ty.num) (Hazelnut.Ty.num)): (⟨□⟩ : (num -> num)) [v1, Editor.Status.edited]
+  Hazelnut.Action.lam "x": ((λ"x". ⟨□⟩) : (num -> num)) [v2, Editor.Status.edited]
+  Hazelnut.Action.var "x": ((λ"x". ⟨"x"⟩) : (num -> num)) [v3, Editor.Status.edited]
+  Hazelnut.Action.plus: ((λ"x". ("x" + ⟨□⟩)) : (num -> num)) [v4, Editor.Status.edited]
+  Hazelnut.Action.app: ((λ"x". ("x" + (□ ⟨□⟩))) : (num -> num)) [v5, Editor.Status.edited]
+  Hazelnut.Action.lit 1: ((λ"x". ("x" + (□ ⟨1⟩))) : (num -> num)) [v6, Editor.Status.edited]
+  Hazelnut.Action.move (Hazelnut.Direction.parent): ((λ"x". ("x" + ⟨(□ 1)⟩)) : (num -> num)) [v6, Editor.Status.moved]
+  Hazelnut.Action.move (Hazelnut.Direction.child (Hazelnut.Child.first)): ((λ"x". ("x" + (⟨□⟩ 1))) : (num -> num)) [v6, Editor.Status.moved]
+  Hazelnut.Action.lam "x": ((λ"x". ("x" + (((λ"x". ⟨□⟩) : (? -> ?)) 1))) : (num -> num)) [v7, Editor.Status.edited]
+  Hazelnut.Action.move (Hazelnut.Direction.parent): ((λ"x". ("x" + ((⟨(λ"x". □)⟩ : (? -> ?)) 1))) : (num -> num)) [v7, Editor.Status.moved]
+  Hazelnut.Action.move (Hazelnut.Direction.parent): ((λ"x". ("x" + (⟨((λ"x". □) : (? -> ?))⟩ 1))) : (num -> num)) [v7, Editor.Status.moved]
+  Hazelnut.Action.setType (Hazelnut.Ty.arr (Hazelnut.Ty.num) (Hazelnut.Ty.num)): ((λ"x". ("x" + (⟨((λ"x". □) : (num -> num))⟩ 1))) : (num -> num)) [v8, Editor.Status.edited]
+  Hazelnut.Action.move (Hazelnut.Direction.child (Hazelnut.Child.first)): ((λ"x". ("x" + ((⟨(λ"x". □)⟩ : (num -> num)) 1))) : (num -> num)) [v8, Editor.Status.moved]
+  Hazelnut.Action.move (Hazelnut.Direction.child (Hazelnut.Child.first)): ((λ"x". ("x" + (((λ"x". ⟨□⟩) : (num -> num)) 1))) : (num -> num)) [v8, Editor.Status.moved]
+  Hazelnut.Action.var "x": ((λ"x". ("x" + (((λ"x". ⟨"x"⟩) : (num -> num)) 1))) : (num -> num)) [v9, Editor.Status.edited]
+  Hazelnut.Action.wrap: ((λ"x". ("x" + (((λ"x". ⦇⟨"x"⟩⦈) : (num -> num)) 1))) : (num -> num)) [v10, Editor.Status.edited]
+
+Lexical go-to-definition (UTF-16 columns, half-open ranges):
+((λ"x". ("x" + (((λ"x". ⦇"x"⦈) : (num -> num)) 1))) : (num -> num))
+  outer reference @9: some { originSelectionRange := { start := { line := 0, character := 9 }, end := { line := 0, character := 12 } },
+  targetUri := "file:///example.hz",
+  targetRange := { start := { line := 0, character := 1 }, end := { line := 0, character := 51 } },
+  targetSelectionRange := { start := { line := 0, character := 3 }, end := { line := 0, character := 6 } } }
+  shadowed reference inside nonempty hole @25: Editor.DefinitionResult.links
+  [{ originSelectionRange := { start := { line := 0, character := 25 }, end := { line := 0, character := 28 } },
+     targetUri := "file:///example.hz",
+     targetRange := { start := { line := 0, character := 17 }, end := { line := 0, character := 30 } },
+     targetSelectionRange := { start := { line := 0, character := 19 }, end := { line := 0, character := 22 } } }]
+  response accepted: Editor.Status.accepted
+  view selects binder: some { start := { line := 0, character := 19 }, end := { line := 0, character := 22 } }
+  well-formed but wrong binder: Editor.Status.invalidResponse
+  edit to v11, then old response: Editor.Status.stale
+  cursor-only move, then response: Editor.Status.accepted
+  empty hole: Editor.DefinitionResult.null
+  client without linkSupport: Editor.DefinitionResult.locations
+  [{ uri := "file:///example.hz",
+     range := { start := { line := 0, character := 19 }, end := { line := 0, character := 22 } } }]
+  UTF-16 width of 😀: 2
+All executable examples passed.
++ lake env lean --run examples/DeploymentChecks.lean
+'Formal.Nix.interpreter_correspondence' depends on axioms: [propext, Quot.sound]
+'Formal.Nix.divergence_correspondence' depends on axioms: [propext, Quot.sound]
+'Formal.Deployment.transition_invariant' depends on axioms: [propext, Quot.sound]
+'Formal.Deployment.executeAll_preserves' depends on axioms: [propext, Quot.sound]
+'Formal.Deployment.Examples.collected_invariant' depends on axioms: [propext, Quot.sound]
+NixLang fragment:
+  lexical-over-with: Formal.Nix.Result.done (Formal.Nix.Answer.value (Formal.Nix.Expr.num 7))
+  inner-absolute-rebinding: Formal.Nix.Result.done (Formal.Nix.Answer.value (Formal.Nix.Expr.num 42))
+  opaque-saved-closure: Formal.Nix.Result.done (Formal.Nix.Answer.value (Formal.Nix.Expr.num 7))
+  shallow-does-not-force-fields: Formal.Nix.Result.done (Formal.Nix.Answer.value (Formal.Nix.Expr.bool true))
+  deep-fault: Formal.Nix.Result.done (Formal.Nix.Answer.fault (Formal.Nix.Fault.unbound "missing"))
+  domain-before-values: Formal.Nix.Result.done (Formal.Nix.Answer.value (Formal.Nix.Expr.bool false))
+  nested-deep: Formal.Nix.Result.done
+  (Formal.Nix.Answer.value
+    (Formal.Nix.Expr.attrs [("outer", Formal.Nix.Expr.attrs [("answer", Formal.Nix.Expr.num 42)])]))
+Multi-user deployment after rollback, history pruning and GC:
+  alice: { nextSerial := 2,
+  generations := [{ serial := 0, roots := [11] }],
+  active := some { serial := 0, roots := [11] },
+  staged := none }
+  bob: { nextSerial := 1,
+  generations := [{ serial := 0, roots := [13] }],
+  active := some { serial := 0, roots := [13] },
+  staged := some [12] }
+  store: [(10, some { dependencies := [], content := "shared-runtime-v1" }),
+ (11, some { dependencies := [10], content := "editor-v1" }),
+ (12, some { dependencies := [10], content := "editor-v2" }),
+ (13, some { dependencies := [10], content := "analysis-tool" }),
+ (99, none)]
++ /nix/store/fj9hrvy7y5pd3vjmmg56qa7sxsrkrixn-python3-3.13.15/bin/python3 examples/deployment-check.py --native
+nix (Nix) 2.34.9+1
+PASS: 26 real-Nix scope/laziness/default/forcing checks
+OBSERVATION: same-size different-domain equality = {"success": true, "value": false}
+OBSERVATION: isolated same-size domain probe = {"success": false, "value": false}
+PASS: 5 expected evaluator failures (including detected recursion)
+PASS: 4 distinct derivation plans; all 3 user versions share the runtime input
+PASS: plan-only temporary store cleaned up on exit
+Traceback (most recent call last):
+  File "/Users/sean/code/dev/dotfiles/formal/examples/deployment-check.py", line 244, in <module>
+    main()
+    ~~~~^^
+  File "/Users/sean/code/dev/dotfiles/formal/examples/deployment-check.py", line 240, in main
+    native_demo(temp_parent)
+    ~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/sean/code/dev/dotfiles/formal/examples/deployment-check.py", line 80, in native_demo
+    invoke(nix_store, "--realise", *[p["derivationPath"] for p in plan.values()])
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sean/code/dev/dotfiles/formal/examples/deployment-check.py", line 72, in invoke
+    return run([tool, *common, *map(str, args)], expected_error=expected_error, env=env)
+  File "/Users/sean/code/dev/dotfiles/formal/examples/deployment-check.py", line 35, in run
+    result = subprocess.run(argv, text=True, capture_output=True, timeout=30, env=env)
+  File "/nix/store/fj9hrvy7y5pd3vjmmg56qa7sxsrkrixn-python3-3.13.15/lib/python3.13/subprocess.py", line 554, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/fj9hrvy7y5pd3vjmmg56qa7sxsrkrixn-python3-3.13.15/lib/python3.13/subprocess.py", line 1039, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/fj9hrvy7y5pd3vjmmg56qa7sxsrkrixn-python3-3.13.15/lib/python3.13/subprocess.py", line 1991, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/nix/store'

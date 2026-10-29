@@ -1,0 +1,21 @@
+{
+  "author_page": "https://www.cs.cmu.edu/~comar/hazelnut-popl17/",
+  "agda": {
+    "repository": "https://github.com/hazelgrove/agda-popl17",
+    "revision": "db3d21a1e3f17ef77ad557ed12374979f381b6b7",
+    "url": "https://github.com/hazelgrove/agda-popl17/archive/db3d21a1e3f17ef77ad557ed12374979f381b6b7.tar.gz",
+    "sha256": "41226098105f1baa456b1640de9ebce15712e86727fc055f53881c5ad4d9ba67",
+    "directory": "agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7"
+  },
+  "ocaml": {
+    "repository": "https://github.com/hazelgrove/HZ",
+    "revision": "2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090",
+    "url": "https://github.com/hazelgrove/HZ/archive/2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090.tar.gz",
+    "sha256": "071925896f0aae5c52ae37f28b74b3011ae05620ae609d93f77af6db8102f6ab",
+    "directory": "HZ-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090"
+  },
+  "isabelle": {
+    "original": "/Users/sean/Downloads/EvalSTLC.thy",
+    "sha256": "21645ca95604799eb56392bf5a8f98eea49fd2ca0ab864e93076671ed69dbc76"
+  }
+}
