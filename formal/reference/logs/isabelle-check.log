@@ -1,0 +1,27 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/store/18ygg3r4ji4h5m91cci80b6g897b1b40-isabelle-2025-2/bin/isabelle build -v -j 1 -o threads=2 -D /Users/sean/code/dev/dotfiles/formal/reference/work/isabelle-gnszndgc
+environment overrides: {"HOME": "/Users/sean/code/dev/dotfiles/formal/reference/home", "USER_HOME": "/Users/sean/code/dev/dotfiles/formal/reference/home", "TMPDIR": "/Users/sean/code/dev/dotfiles/formal/reference/tmp"}
+Started at Wed Oct 28 04:50:09 GMT-6 2026 (polyml-for-isabelle-2025-1_aarch64-darwin on Seans-MacBook-Air)
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ISABELLE_BUILD_OPTIONS=""
+
+ML_PLATFORM="aarch64-darwin"
+ML_HOME="/nix/store/zjx75vlz53p8bw3p4a79kdd1s8r9kf6q-polyml-for-isabelle-2025-1/bin"
+ML_SYSTEM="polyml-for-isabelle-2025-1"
+ML_OPTIONS="--minheap 1000"
+
+Session Pure/Pure
+Session Misc/Tools
+Session HOL/HOL (main)
+Session Unsorted/EvalSTLC_Reference
+Running EvalSTLC_Reference ...
+EvalSTLC_Reference: theory EvalSTLC_Reference.EvalSTLC
+EvalSTLC_Reference FAILED (see also "isabelle build_log -H Error EvalSTLC_Reference")
+*** Cannot determine type of "const" (line 171 of "/Users/sean/code/dev/dotfiles/formal/reference/work/isabelle-gnszndgc/EvalSTLC.thy")
+*** At command "apply" (line 171 of "/Users/sean/code/dev/dotfiles/formal/reference/work/isabelle-gnszndgc/EvalSTLC.thy")
+Unfinished session(s): EvalSTLC_Reference
+
+Finished at Wed Oct 28 04:50:17 GMT-6 2026
+0:00:07 elapsed time, 0:00:05 cpu time, factor 0.68
+
+exit status: 1

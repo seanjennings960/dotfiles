@@ -1,0 +1,12 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: curl --fail --location --retry 2 https://github.com/hazelgrove/agda-popl17/archive/db3d21a1e3f17ef77ad557ed12374979f381b6b7.tar.gz -o /Users/sean/code/dev/dotfiles/formal/reference/downloads/agda-db3d21a1e3f17ef77ad557ed12374979f381b6b7.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 34248    0 34248    0     0  27922      0 --:--:--  0:00:01 --:--:-- 60615
+
+exit status: 0

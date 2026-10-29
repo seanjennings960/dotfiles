@@ -1,0 +1,18 @@
+--- EvalSTLC.thy
++++ EvalSTLC.thy
+@@ -167,9 +167,12 @@
+ lemma delta_safe: 
+   assumes wtop: "typeof_op f = A \<rightarrow> B" and wtv: "\<turnstile> v : A"
+   shows "\<turnstile> delta f v :: B"
+-  using wtop wtv 
+-  apply (case_tac f) apply (case_tac v, case_tac const, force, force, force)+
+-  done
++  using wtop wtv
++  apply (cases f; cases v; auto)
++  subgoal for i c j by (cases c; auto)
++  subgoal for i c j by (cases c; auto)
++  subgoal for i c j by (cases c; auto)
++  done
+ 
+ lemma lookup_safe: 
+   assumes wtg: "\<Gamma> \<turnstile> \<rho>" and l: "lookup \<Gamma> x = Result A"

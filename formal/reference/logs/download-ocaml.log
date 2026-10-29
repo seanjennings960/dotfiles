@@ -1,0 +1,12 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: curl --fail --location --retry 2 https://github.com/hazelgrove/HZ/archive/2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090.tar.gz -o /Users/sean/code/dev/dotfiles/formal/reference/downloads/ocaml-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+100 46459    0 46459    0     0  48250      0 --:--:-- --:--:-- --:--:-- 48250
+100  113k    0  113k    0     0   102k      0 --:--:--  0:00:01 --:--:--  464k
+
+exit status: 0

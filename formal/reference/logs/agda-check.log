@@ -1,0 +1,20 @@
+cwd: /Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7
+command: /nix/store/p5l1g0qvm8bc96x03dgskakipfd6c2z0-agdaWithPackages-2.8.0/bin/agda --no-libraries all.agda
+Checking all (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/all.agda).
+ Checking List (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/List.agda).
+  Checking Prelude (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/Prelude.agda).
+  Checking Nat (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/Nat.agda).
+ Checking core (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/core.agda).
+ Checking checks (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/checks.agda).
+  Checking judgemental-erase (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/judgemental-erase.agda).
+  Checking sensibility (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/sensibility.agda).
+   Checking moveerase (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/moveerase.agda).
+ Checking judgemental-inconsistency (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/judgemental-inconsistency.agda).
+ Checking examples (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/examples.agda).
+ Checking structural (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/structural.agda).
+ Checking aasubsume-min (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/aasubsume-min.agda).
+ Checking determinism (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/determinism.agda).
+ Checking reachability (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/reachability.agda).
+ Checking constructability (/Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z/agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7/constructability.agda).
+
+exit status: 0

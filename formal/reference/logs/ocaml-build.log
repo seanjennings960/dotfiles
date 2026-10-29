@@ -1,0 +1,4 @@
+cwd: /Users/sean/code/dev/dotfiles/formal/reference/work/ocaml-xu87jq2d/HZ-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090/src
+command: /nix/store/mfjm894flhap4am8if8yh3ajz1fmwppl-ocaml-5.4.1/bin/ocamlc -o hz_checks hz_semantics.ml hz_checks.ml
+
+exit status: 0

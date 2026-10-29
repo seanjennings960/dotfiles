@@ -1,0 +1,7 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/store/p5l1g0qvm8bc96x03dgskakipfd6c2z0-agdaWithPackages-2.8.0/bin/agda --version
+Agda version 2.8.0
+Built with flags (cabal -f)
+ - debug: enable debug printing ('-v' verbosity flags)
+
+exit status: 0
