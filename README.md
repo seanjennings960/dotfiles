@@ -41,6 +41,24 @@ Silicon macOS (`aarch64-darwin`) and ARM64 Linux (`aarch64-linux`).
 `flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
 deliberately and commit the updated lockfile.
 
+Build or run the packaged `dev` launcher:
+
+```sh
+nix build
+./result/bin/dev env
+nix run . -- --help
+nix run . -- env
+```
+
+To install it into your Nix profile, run `nix profile add .#dev`.
+The package supplies its own Python and Click, with Git and tmux as fallbacks
+on `PATH` so project tools retain precedence. Click uses the version pinned by
+`flake.lock`; the exact PyPI requirement is relaxed only for the Nix build.
+The build runs the existing launcher tests.
+
+The launcher supports local tmux sessions, workspace inspection, and command
+execution. Cross-environment entry and container rebuild are not implemented.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type

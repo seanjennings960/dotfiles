@@ -12,6 +12,16 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
+      packages = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          dev = pkgs.callPackage ./nix/package.nix { };
+        in
+        {
+          inherit dev;
+          default = dev;
+        });
+
       devShells = forAllSystems (system: {
         default = nixpkgs.legacyPackages.${system}.mkShell {
           name = "devchain";
