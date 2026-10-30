@@ -129,6 +129,8 @@ plugins. Gruvbox uses dark mode with hard contrast. F4 toggles search highlighti
 Enter hides it, and `/`, `?`, and `*` re-enable it.
 Use **comma-n** to toggle the NERDTree file browser.
 Use **Ctrl-P** for CtrlP file navigation; its cache uses Neovim's cache directory.
+Use **comma-u** for Undotree, replacing the old Gundo plugin. The package supplies
+`diff` for its diff pane; persistent undo history survives editor restarts.
 
 ## Enter Dev
 

@@ -24,6 +24,7 @@ vim.keymap.set("n", "/", ":call gruvbox#hls_show()<CR>/", { silent = true })
 vim.keymap.set("n", "?", ":call gruvbox#hls_show()<CR>?", { silent = true })
 vim.keymap.set("n", "<leader>n", "<Cmd>NERDTreeToggle<CR>", { silent = true })
 vim.g.ctrlp_cache_dir = vim.fn.stdpath("cache") .. "/ctrlp"
+vim.keymap.set("n", "<leader>u", "<Cmd>UndotreeToggle<CR>", { silent = true })
 
 -- Packaged configuration is read-only; keep editing state in the user's state directory.
 local state = vim.fn.stdpath("state")
