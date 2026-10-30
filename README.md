@@ -112,6 +112,18 @@ The launcher's custom workspace/environment session tags are not saved by
 tmux-resurrect, so `dev` may create a new session after restoration; you can attach
 to restored sessions directly with tmux. Saving and restoring are manual.
 
+### Configured Neovim
+
+Run `nix run .#nvim -- <file>` or enter `nix shell .#nvim` to use the configured
+editor. Its packaged startup is `config/nvim/init.lua`; it loads directly from
+the Nix store rather than installing configuration into your home directory.
+
+The baseline uses comma leader, four-space indentation, line numbers,
+smart-case/incremental search, autoread, and mouse support. YAML and Markdown use
+two-space indentation. Native EditorConfig support remains enabled for project
+settings. Persistent undo, swap, and backup files live under Neovim's
+`stdpath("state")` (normally `$XDG_STATE_HOME/nvim` or `~/.local/state/nvim`).
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type

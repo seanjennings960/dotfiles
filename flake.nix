@@ -20,10 +20,11 @@
           wheelhouse = pkgs.callPackage ./nix/wheelhouse.nix { };
           resurrect = pkgs.callPackage ./nix/resurrect.nix { };
           tmux = pkgs.callPackage ./nix/tmux.nix { inherit resurrect; };
+          nvim = pkgs.callPackage ./nix/neovim.nix { };
           dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse tmux; };
         in
         {
-          inherit dev tmux;
+          inherit dev tmux nvim;
           default = dev;
         }
       );
