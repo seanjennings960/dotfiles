@@ -174,6 +174,15 @@ The package pins OpenCode V2 **2.1.4** using official platform archives and thei
 integrity hashes. It is separate from nixpkgs' older V1 package. Change the
 version and platform hashes in `nix/opencode.nix` to upgrade the Nix installation.
 
+`nix build .#opencode-config` produces `result/share/opencode/` with the tracked
+`opencode.jsonc` and `skills/unslop/SKILL.md`. Copy those files into
+`${XDG_CONFIG_HOME:-$HOME/.config}/opencode/`, merging with any existing settings.
+Make the copies user-writable. Keep the configuration directory itself writable
+rather than symlinking it to the Nix store, so OpenCode can manage dependency
+state there. The artifact contains no generated dependency files or local service
+settings. OpenCode V2 reloads configuration changes automatically; `/reload`
+forces a full reload.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type

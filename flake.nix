@@ -40,6 +40,11 @@
             mkdir -p "$out/share/ghostty"
             cp ${./config/ghostty/config.ghostty} "$out/share/ghostty/config.ghostty"
           '';
+          opencode-config = pkgs.runCommand "devchain-opencode-config" { } ''
+            mkdir -p "$out/share/opencode/skills/unslop"
+            cp ${./config/opencode/opencode.jsonc} "$out/share/opencode/opencode.jsonc"
+            cp ${./config/opencode/skills/unslop/SKILL.md} "$out/share/opencode/skills/unslop/SKILL.md"
+          '';
           default = dev;
         }
       );
