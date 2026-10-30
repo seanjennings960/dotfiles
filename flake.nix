@@ -25,6 +25,7 @@
             configuredZsh = zsh;
           };
           nvim = pkgs.callPackage ./nix/neovim.nix { };
+          opencode = pkgs.callPackage ./nix/opencode.nix { };
           dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse tmux; };
         in
         {
@@ -33,6 +34,7 @@
             tmux
             nvim
             zsh
+            opencode
             ;
           ghostty-config = pkgs.runCommand "devchain-ghostty-config" { } ''
             mkdir -p "$out/share/ghostty"
@@ -73,6 +75,7 @@
             name = "devchain";
             packages = [
               pkgs.python3
+              self.packages.${system}.opencode
               # Expose Hatch without propagating its own Python dependencies
               # into the project's environment through Nix setup hooks.
               (pkgs.writeShellScriptBin "hatch" ''

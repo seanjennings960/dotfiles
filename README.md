@@ -36,7 +36,7 @@ enabled, enter the development shell from this repository:
 nix develop
 ```
 
-The shell supplies Hatch and Python. The flake exposes outputs for Apple
+The shell supplies Hatch, Python, and OpenCode. The flake exposes outputs for Apple
 Silicon macOS (`aarch64-darwin`) and ARM64 Linux (`aarch64-linux`).
 `flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
 deliberately and commit the updated lockfile.
@@ -166,6 +166,13 @@ background (`#1b2920`). Add a `config-file` entry pointing to that file's absolu
 path in your existing Ghostty configuration, or copy the file into your Ghostty
 configuration directory. The artifact does not install Ghostty or activate itself.
 Reload Ghostty's configuration after activation.
+
+### OpenCode
+
+Run `nix run .#opencode -- --version` or use `opencode` inside `nix develop`.
+The package pins OpenCode V2 **2.1.4** using official platform archives and their
+integrity hashes. It is separate from nixpkgs' older V1 package. Change the
+version and platform hashes in `nix/opencode.nix` to upgrade the Nix installation.
 
 ## Enter Dev
 
