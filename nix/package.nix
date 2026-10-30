@@ -1,4 +1,13 @@
-{ lib, stdenvNoCC, hatch, python3, makeWrapper, git, tmux, wheelhouse }:
+{
+  lib,
+  stdenvNoCC,
+  hatch,
+  python3,
+  makeWrapper,
+  git,
+  tmux,
+  wheelhouse,
+}:
 
 let
   project = (builtins.fromTOML (builtins.readFile ../pyproject.toml)).project;
@@ -16,7 +25,10 @@ stdenvNoCC.mkDerivation {
     ];
   };
 
-  nativeBuildInputs = [ python3 makeWrapper ];
+  nativeBuildInputs = [
+    python3
+    makeWrapper
+  ];
   nativeCheckInputs = [ git ];
   doCheck = true;
 
@@ -51,13 +63,21 @@ stdenvNoCC.mkDerivation {
     "$out/libexec/dev/bin/python" -m pip install --no-compile dist/*.whl
     mkdir -p "$out/bin"
     makeWrapper "$out/libexec/dev/bin/dev" "$out/bin/dev" \
-      --suffix PATH : ${lib.makeBinPath [ git tmux ]}
+      --suffix PATH : ${
+        lib.makeBinPath [
+          git
+          tmux
+        ]
+      }
     runHook postInstall
   '';
 
   meta = {
     description = "Workspace launcher with local tmux sessions";
     mainProgram = "dev";
-    platforms = [ "aarch64-darwin" "aarch64-linux" ];
+    platforms = [
+      "aarch64-darwin"
+      "aarch64-linux"
+    ];
   };
 }

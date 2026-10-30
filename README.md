@@ -76,6 +76,9 @@ tests for unavailable shells are skipped.
 
 Run `nix flake check` to build the launcher and run its tests on the current
 platform. This check reuses the same package derivation as `nix build`.
+Run `nix fmt` from the repository root to format `flake.nix` and `nix/*.nix`
+with the pinned nixfmt. Explicit arguments are forwarded, for example
+`nix fmt -- --check flake.nix nix/*.nix`.
 
 The launcher supports local tmux sessions, workspace inspection, and command
 execution. Cross-environment entry and container rebuild are not implemented.

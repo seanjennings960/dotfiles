@@ -3,7 +3,8 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-  outputs = { self, nixpkgs, ... }:
+  outputs =
+    { self, nixpkgs, ... }:
     let
       systems = [
         "aarch64-darwin"
@@ -12,7 +13,8 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
-      packages = forAllSystems (system:
+      packages = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
           wheelhouse = pkgs.callPackage ./nix/wheelhouse.nix { };
@@ -21,13 +23,32 @@
         {
           inherit dev;
           default = dev;
-        });
+        }
+      );
 
       checks = forAllSystems (system: {
         dev = self.packages.${system}.dev;
       });
 
-      devShells = forAllSystems (system:
+      formatter = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        pkgs.writeShellApplication {
+          name = "format-nix";
+          runtimeInputs = [ pkgs.nixfmt ];
+          text = ''
+            if [ "$#" -eq 0 ]; then
+              set -- flake.nix nix/*.nix
+            fi
+            exec nixfmt "$@"
+          '';
+        }
+      );
+
+      devShells = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
@@ -43,6 +64,7 @@
               '')
             ];
           };
-        });
+        }
+      );
     };
 }
