@@ -90,7 +90,8 @@ nix run .#tmux -- -L devchain
 ```
 
 This package loads `config/tmux.conf` with Ctrl-A prefix, Vim-style navigation,
-and pane-directory inheritance. Bash and the reload binding use Nix store paths.
+and pane-directory inheritance. Configured Zsh is the default shell, and the
+reload binding uses the packaged configuration's Nix store path.
 Clipboard copying uses `pbcopy` on macOS, `wl-copy` on Wayland, or `xclip` on X11.
 OSC 52 clipboard support is also enabled; delivery depends on terminal support
 and settings.
@@ -142,6 +143,20 @@ ALE provides Python diagnostics through Ruff. It prefers project virtualenv
 executables; Ruff is also supplied as a fallback on `PATH`. Project Ruff settings
 remain authoritative. Other linters and automatic fixing on save are disabled.
 Use `:ALEInfo` to inspect the selected executable, command, and diagnostic output.
+
+### Configured Zsh
+
+Run `nix run .#zsh` for the configured shell. New panes in the packaged tmux use
+it automatically. It provides native completion, a Git-aware prompt, persistent
+history, autosuggestions, and Vi-style command-line editing. Escape enters normal
+mode; Ctrl-R searches history in insert mode.
+
+`config/zsh/zshrc` is loaded through a packaged `ZDOTDIR`, rather than sourcing
+your home-directory Zsh startup files. History lives under
+`$XDG_STATE_HOME/devchain/zsh` (default `~/.local/state/devchain/zsh`) and completion
+data under `$XDG_CACHE_HOME/devchain/zsh` (default `~/.cache/devchain/zsh`). Project
+executables retain precedence on `PATH`. Shell startup does not install tools or
+download plugins.
 
 ## Enter Dev
 

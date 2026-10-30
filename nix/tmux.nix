@@ -3,7 +3,7 @@
   stdenvNoCC,
   runCommand,
   writeShellApplication,
-  bashInteractive,
+  configuredZsh,
   tmux,
   xclip,
   wl-clipboard,
@@ -37,7 +37,7 @@ let
 
   config = runCommand "devchain-tmux.conf" { } ''
     substitute ${../config/tmux.conf} "$out" \
-      --replace-fail /bin/bash ${bashInteractive}/bin/bash \
+      --replace-fail /bin/bash ${lib.getExe configuredZsh} \
       --replace-fail '~/.tmux.conf' "$out" \
       --replace-fail 'xclip -sel clip -i' '${lib.getExe clipboard}'
     printf '\nset -g set-clipboard on\n' >> "$out"

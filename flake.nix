@@ -19,12 +19,21 @@
           pkgs = nixpkgs.legacyPackages.${system};
           wheelhouse = pkgs.callPackage ./nix/wheelhouse.nix { };
           resurrect = pkgs.callPackage ./nix/resurrect.nix { };
-          tmux = pkgs.callPackage ./nix/tmux.nix { inherit resurrect; };
+          zsh = pkgs.callPackage ./nix/zsh.nix { };
+          tmux = pkgs.callPackage ./nix/tmux.nix {
+            inherit resurrect;
+            configuredZsh = zsh;
+          };
           nvim = pkgs.callPackage ./nix/neovim.nix { };
           dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse tmux; };
         in
         {
-          inherit dev tmux nvim;
+          inherit
+            dev
+            tmux
+            nvim
+            zsh
+            ;
           default = dev;
         }
       );
