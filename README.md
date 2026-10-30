@@ -127,6 +127,7 @@ settings. Persistent undo, swap, and backup files live under Neovim's
 Plugins are supplied by the pinned nixpkgs revision; startup does not download
 plugins. Gruvbox uses dark mode with hard contrast. F4 toggles search highlighting,
 Enter hides it, and `/`, `?`, and `*` re-enable it.
+Use **comma-n** to toggle the NERDTree file browser.
 
 ## Enter Dev
 
