@@ -36,7 +36,7 @@ enabled, enter the development shell from this repository:
 nix develop
 ```
 
-The initial shell is intentionally empty. The flake exposes outputs for Apple
+The shell supplies Hatch and Python. The flake exposes outputs for Apple
 Silicon macOS (`aarch64-darwin`) and ARM64 Linux (`aarch64-linux`).
 `flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
 deliberately and commit the updated lockfile.
@@ -51,10 +51,28 @@ nix run . -- env
 ```
 
 To install it into your Nix profile, run `nix profile add .#dev`.
-The package supplies its own Python and Click, with Git and tmux as fallbacks
-on `PATH` so project tools retain precedence. Click uses the version pinned by
-`flake.lock`; the exact PyPI requirement is relaxed only for the Nix build.
-The build runs the existing launcher tests.
+The package supplies its own Python environment, with Git and tmux as fallbacks
+on `PATH` so project tools retain precedence. Nix invokes `hatch build -t wheel`
+and runs the launcher tests through Hatch, then installs the wheel and its
+dependencies into the packaged environment using pip.
+
+Python dependencies are managed by Hatch/pip rather than nixpkgs' Python package
+set. `nix/wheels.json` records fixed-hash wheels for the build, test, and runtime
+dependencies, including the exact Click version from `pyproject.toml`. Nix fetches
+these wheels before the sandboxed build; Hatch/pip use that cache with package
+index access disabled. Update the wheel manifest when changing dependencies.
+
+For development, run these commands from the repository inside `nix develop`:
+
+```sh
+hatch build
+hatch run dev env
+hatch run test
+```
+
+Hatch manages an editable development environment and may download dependencies
+on first use outside the Nix build. The activation tests require Bash and Zsh;
+tests for unavailable shells are skipped.
 
 The launcher supports local tmux sessions, workspace inspection, and command
 execution. Cross-environment entry and container rebuild are not implemented.

@@ -15,18 +15,30 @@
       packages = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          dev = pkgs.callPackage ./nix/package.nix { };
+          wheelhouse = pkgs.callPackage ./nix/wheelhouse.nix { };
+          dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse; };
         in
         {
           inherit dev;
           default = dev;
         });
 
-      devShells = forAllSystems (system: {
-        default = nixpkgs.legacyPackages.${system}.mkShell {
-          name = "devchain";
-          packages = [ ];
-        };
-      });
+      devShells = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShellNoCC {
+            name = "devchain";
+            packages = [
+              pkgs.python3
+              # Expose Hatch without propagating its own Python dependencies
+              # into the project's environment through Nix setup hooks.
+              (pkgs.writeShellScriptBin "hatch" ''
+                exec ${pkgs.lib.getExe pkgs.hatch} "$@"
+              '')
+            ];
+          };
+        });
     };
 }

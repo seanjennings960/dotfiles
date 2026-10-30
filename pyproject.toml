@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=70"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
 
 [project]
 name = "dotfiles-dev"
@@ -15,8 +15,14 @@ dev = "dotfiles_dev.cli:main"
 [project.optional-dependencies]
 dev = ["pytest==8.4.2", "pexpect==4.9.0"]
 
-[tool.setuptools]
+[tool.hatch.build.targets.wheel]
 packages = ["dotfiles_dev"]
+
+[tool.hatch.envs.default]
+features = ["dev"]
+
+[tool.hatch.envs.default.scripts]
+test = "python -m pytest {args}"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
