@@ -63,7 +63,7 @@ stdenvNoCC.mkDerivation {
     "$out/libexec/dev/bin/python" -m pip install --no-compile dist/*.whl
     mkdir -p "$out/bin"
     makeWrapper "$out/libexec/dev/bin/dev" "$out/bin/dev" \
-      --suffix PATH : ${
+      --prefix PATH : ${
         lib.makeBinPath [
           git
           tmux
