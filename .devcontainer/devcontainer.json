@@ -3,6 +3,10 @@
     "build": {
         "dockerfile": "Dockerfile"
     },
+    "initializeCommand": ["make", "feature"],
+    "features": {
+        "./features/devchain": {}
+    },
     "remoteUser": "vscode",
     "customizations": {
         "vscode": {
