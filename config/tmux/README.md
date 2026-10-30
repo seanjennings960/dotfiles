@@ -85,3 +85,18 @@ tmux show-option -gv @resurrect-restore-script-path
 Both should print plugin script paths in `/nix/store`. If the options are absent,
 check that you started the packaged tmux on a fresh server. For a separate test
 server, run `nix run .#tmux -- -L resurrect-test new-session` from the repository.
+
+## Test the save shortcut
+
+From the repository root:
+
+```sh
+DOTFILES_TEST_TMUX="$(nix build .#tmux --no-link --print-out-paths)/bin/tmux" \
+  nix develop --command hatch run test tests/test_tmux_resurrect.py
+```
+
+The test starts an isolated server with a temporary home, checks the loaded
+prefix and binding, sends Ctrl-A then Ctrl-S through an attached pseudo-terminal,
+and verifies a saved two-pane session and its working directories. It cleans up
+its own server afterward. Without `DOTFILES_TEST_TMUX`, the test is skipped so a
+regular test run does not accidentally test a system tmux with different settings.
