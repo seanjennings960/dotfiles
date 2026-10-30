@@ -18,7 +18,8 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           wheelhouse = pkgs.callPackage ./nix/wheelhouse.nix { };
-          tmux = pkgs.callPackage ./nix/tmux.nix { };
+          resurrect = pkgs.callPackage ./nix/resurrect.nix { };
+          tmux = pkgs.callPackage ./nix/tmux.nix { inherit resurrect; };
           dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse tmux; };
         in
         {

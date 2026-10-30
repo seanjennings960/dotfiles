@@ -101,6 +101,17 @@ packaged tools explicitly. Configuration loads when a tmux server starts, so
 use a fresh socket name when trying changes. Home-directory configuration files
 are not installed by this package.
 
+The configured package also includes tmux-resurrect, pinned through nixpkgs:
+
+- **Ctrl-A, Ctrl-S** saves sessions, windows, panes, and supported programs.
+- **Ctrl-A, Ctrl-R** restores the latest snapshot.
+- Snapshots are stored in `~/.tmux/resurrect`, outside the Nix store.
+
+Restoration recreates layouts and supported commands, not running process memory.
+The launcher's custom workspace/environment session tags are not saved by
+tmux-resurrect, so `dev` may create a new session after restoration; you can attach
+to restored sessions directly with tmux. Saving and restoring are manual.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type

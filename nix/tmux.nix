@@ -7,6 +7,7 @@
   tmux,
   xclip,
   wl-clipboard,
+  resurrect,
 }:
 
 let
@@ -40,6 +41,7 @@ let
       --replace-fail '~/.tmux.conf' "$out" \
       --replace-fail 'xclip -sel clip -i' '${lib.getExe clipboard}'
     printf '\nset -g set-clipboard on\n' >> "$out"
+    printf 'run-shell "%s/resurrect.tmux"\n' '${resurrect}' >> "$out"
   '';
 in
 writeShellApplication {
