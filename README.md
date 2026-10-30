@@ -36,7 +36,9 @@ enabled, enter the development shell from this repository:
 nix develop
 ```
 
-The shell supplies Hatch, Python, and OpenCode. The flake exposes outputs for Apple
+The shell supplies Hatch, Python, OpenCode, cowsay, and lolcat. Interactive entry
+prints the experimental "Hello, Nix!" greeting; command execution stays quiet.
+The flake exposes outputs for Apple
 Silicon macOS (`aarch64-darwin`) and ARM64 Linux (`aarch64-linux`).
 `flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
 deliberately and commit the updated lockfile.

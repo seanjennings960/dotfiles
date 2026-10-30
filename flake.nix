@@ -80,6 +80,8 @@
             name = "devchain";
             packages = [
               pkgs.python3
+              pkgs.cowsay
+              pkgs.lolcat
               self.packages.${system}.opencode
               # Expose Hatch without propagating its own Python dependencies
               # into the project's environment through Nix setup hooks.
@@ -87,6 +89,11 @@
                 exec ${pkgs.lib.getExe pkgs.hatch} "$@"
               '')
             ];
+            shellHook = ''
+              if [[ $- == *i* ]]; then
+                printf '%s\n' 'Hello, Nix!' | ${pkgs.cowsay}/bin/cowsay | ${pkgs.lolcat}/bin/lolcat
+              fi
+            '';
           };
         }
       );
