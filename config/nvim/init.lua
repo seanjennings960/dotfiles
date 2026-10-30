@@ -14,6 +14,15 @@ opt.hlsearch = true
 opt.autoread = true
 opt.mouse = "a"
 
+vim.g.gruvbox_contrast_dark = "hard"
+opt.background = "dark"
+vim.cmd.colorscheme("gruvbox")
+vim.keymap.set({ "n", "v", "i" }, "<F4>", "<Cmd>call gruvbox#hls_toggle()<CR>", { silent = true })
+vim.keymap.set("n", "<CR>", "<Cmd>call gruvbox#hls_hide()<CR>", { silent = true })
+vim.keymap.set("n", "*", ':let @/ = ""<CR>:call gruvbox#hls_show()<CR>*', { silent = true })
+vim.keymap.set("n", "/", ":call gruvbox#hls_show()<CR>/", { silent = true })
+vim.keymap.set("n", "?", ":call gruvbox#hls_show()<CR>?", { silent = true })
+
 -- Packaged configuration is read-only; keep editing state in the user's state directory.
 local state = vim.fn.stdpath("state")
 for _, directory in ipairs({ "undo", "swap", "backup" }) do

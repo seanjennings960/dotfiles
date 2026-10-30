@@ -124,6 +124,10 @@ two-space indentation. Native EditorConfig support remains enabled for project
 settings. Persistent undo, swap, and backup files live under Neovim's
 `stdpath("state")` (normally `$XDG_STATE_HOME/nvim` or `~/.local/state/nvim`).
 
+Plugins are supplied by the pinned nixpkgs revision; startup does not download
+plugins. Gruvbox uses dark mode with hard contrast. F4 toggles search highlighting,
+Enter hides it, and `/`, `?`, and `*` re-enable it.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type
