@@ -26,6 +26,11 @@ vim.keymap.set("n", "<leader>n", "<Cmd>NERDTreeToggle<CR>", { silent = true })
 vim.g.ctrlp_cache_dir = vim.fn.stdpath("cache") .. "/ctrlp"
 vim.keymap.set("n", "<leader>u", "<Cmd>UndotreeToggle<CR>", { silent = true })
 
+vim.g.ale_linters_explicit = 1
+vim.g.ale_linters = { python = { "ruff" } }
+vim.g.ale_python_ruff_use_global = 0
+vim.g.ale_fix_on_save = 0
+
 -- Packaged configuration is read-only; keep editing state in the user's state directory.
 local state = vim.fn.stdpath("state")
 for _, directory in ipairs({ "undo", "swap", "backup" }) do

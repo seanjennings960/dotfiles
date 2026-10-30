@@ -138,6 +138,11 @@ In Markdown buffers, use `:MarkdownPreview`, `:MarkdownPreviewStop`, or
 are packaged by Nix; no `mkdp#util#install()` step is needed. Preview opens in your
 system browser and requires a graphical browser session for normal use.
 
+ALE provides Python diagnostics through Ruff. It prefers project virtualenv
+executables; Ruff is also supplied as a fallback on `PATH`. Project Ruff settings
+remain authoritative. Other linters and automatic fixing on save are disabled.
+Use `:ALEInfo` to inspect the selected executable, command, and diagnostic output.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type
