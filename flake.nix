@@ -18,10 +18,11 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           wheelhouse = pkgs.callPackage ./nix/wheelhouse.nix { };
-          dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse; };
+          tmux = pkgs.callPackage ./nix/tmux.nix { };
+          dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse tmux; };
         in
         {
-          inherit dev;
+          inherit dev tmux;
           default = dev;
         }
       );

@@ -83,6 +83,24 @@ with the pinned nixfmt. Explicit arguments are forwarded, for example
 The launcher supports local tmux sessions, workspace inspection, and command
 execution. Cross-environment entry and container rebuild are not implemented.
 
+### Configured tmux
+
+```sh
+nix run .#tmux -- -L devchain
+```
+
+This package loads `config/tmux.conf` with Ctrl-A prefix, Vim-style navigation,
+and pane-directory inheritance. Bash and the reload binding use Nix store paths.
+Clipboard copying uses `pbcopy` on macOS, `wl-copy` on Wayland, or `xclip` on X11.
+OSC 52 clipboard support is also enabled; delivery depends on terminal support
+and settings.
+
+The packaged launcher uses this tmux as its fallback. An existing `tmux` earlier
+on `PATH` still takes precedence; use `nix shell .#dev .#tmux` to select both
+packaged tools explicitly. Configuration loads when a tmux server starts, so
+use a fresh socket name when trying changes. Home-directory configuration files
+are not installed by this package.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type
