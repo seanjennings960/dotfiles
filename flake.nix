@@ -3,7 +3,7 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-  outputs = { nixpkgs, ... }:
+  outputs = { self, nixpkgs, ... }:
     let
       systems = [
         "aarch64-darwin"
@@ -22,6 +22,10 @@
           inherit dev;
           default = dev;
         });
+
+      checks = forAllSystems (system: {
+        dev = self.packages.${system}.dev;
+      });
 
       devShells = forAllSystems (system:
         let

@@ -74,6 +74,9 @@ Hatch manages an editable development environment and may download dependencies
 on first use outside the Nix build. The activation tests require Bash and Zsh;
 tests for unavailable shells are skipped.
 
+Run `nix flake check` to build the launcher and run its tests on the current
+platform. This check reuses the same package derivation as `nix build`.
+
 The launcher supports local tmux sessions, workspace inspection, and command
 execution. Cross-environment entry and container rebuild are not implemented.
 
