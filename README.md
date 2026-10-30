@@ -119,6 +119,9 @@ are not installed by this package.
 
 The configured package also includes tmux-resurrect, pinned through nixpkgs:
 
+See the [tmux usage and recovery guide](config/tmux/README.md) for startup,
+save/restore instructions, and troubleshooting.
+
 - **Ctrl-A, Ctrl-S** saves sessions, windows, panes, and supported programs.
 - **Ctrl-A, Ctrl-R** restores the latest snapshot.
 - Snapshots are stored in `~/.tmux/resurrect`, outside the Nix store.
