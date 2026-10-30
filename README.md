@@ -27,6 +27,20 @@ current setup is not too far off the `curl` oneliner which is so common
 between modern-day installations. I guess a platform-aware Bash script
 is about as universal as it gets. TODO: productionize installation)
 
+## Nix
+
+With Nix installed and the `nix-command` and `flakes` experimental features
+enabled, enter the development shell from this repository:
+
+```sh
+nix develop
+```
+
+The initial shell is intentionally empty. The flake exposes outputs for Apple
+Silicon macOS (`aarch64-darwin`) and ARM64 Linux (`aarch64-linux`).
+`flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
+deliberately and commit the updated lockfile.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type
