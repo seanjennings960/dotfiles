@@ -34,6 +34,10 @@
             nvim
             zsh
             ;
+          ghostty-config = pkgs.runCommand "devchain-ghostty-config" { } ''
+            mkdir -p "$out/share/ghostty"
+            cp ${./config/ghostty/config.ghostty} "$out/share/ghostty/config.ghostty"
+          '';
           default = dev;
         }
       );

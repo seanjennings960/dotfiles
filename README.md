@@ -158,6 +158,15 @@ data under `$XDG_CACHE_HOME/devchain/zsh` (default `~/.cache/devchain/zsh`). Pro
 executables retain precedence on `PATH`. Shell startup does not install tools or
 download plugins.
 
+### Ghostty configuration artifact
+
+`nix build .#ghostty-config` produces
+`result/share/ghostty/config.ghostty`, containing the tracked green-gray
+background (`#1b2920`). Add a `config-file` entry pointing to that file's absolute
+path in your existing Ghostty configuration, or copy the file into your Ghostty
+configuration directory. The artifact does not install Ghostty or activate itself.
+Reload Ghostty's configuration after activation.
+
 ## Enter Dev
 
 After installation, change the working directory to a `git` repository and type
