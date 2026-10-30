@@ -1,4 +1,9 @@
-{ lib, neovim, vimPlugins, diffutils }:
+{
+  lib,
+  neovim,
+  vimPlugins,
+  diffutils,
+}:
 
 neovim.override {
   withPython3 = false;
@@ -6,7 +11,14 @@ neovim.override {
   withNodeJs = false;
   extraMakeWrapperArgs = "--suffix PATH : ${lib.makeBinPath [ diffutils ]}";
   configure = {
-    packages.devchain.start = [ vimPlugins.gruvbox vimPlugins.nerdtree vimPlugins.ctrlp-vim vimPlugins.undotree vimPlugins.vim-better-whitespace ];
+    packages.devchain.start = [
+      vimPlugins.gruvbox
+      vimPlugins.nerdtree
+      vimPlugins.ctrlp-vim
+      vimPlugins.undotree
+      vimPlugins.vim-better-whitespace
+      vimPlugins.markdown-preview-nvim
+    ];
     customRC = ''
       lua dofile("${../config/nvim/init.lua}")
     '';

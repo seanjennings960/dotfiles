@@ -133,6 +133,10 @@ Use **comma-u** for Undotree, replacing the old Gundo plugin. The package suppli
 `diff` for its diff pane; persistent undo history survives editor restarts.
 Better Whitespace highlights trailing whitespace. Use `:StripWhitespace` to
 remove it explicitly; saving does not automatically strip whitespace.
+In Markdown buffers, use `:MarkdownPreview`, `:MarkdownPreviewStop`, or
+`:MarkdownPreviewToggle`. The preview plugin, Node.js, and JavaScript dependencies
+are packaged by Nix; no `mkdp#util#install()` step is needed. Preview opens in your
+system browser and requires a graphical browser session for normal use.
 
 ## Enter Dev
 
