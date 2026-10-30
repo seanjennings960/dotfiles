@@ -128,6 +128,7 @@ Plugins are supplied by the pinned nixpkgs revision; startup does not download
 plugins. Gruvbox uses dark mode with hard contrast. F4 toggles search highlighting,
 Enter hides it, and `/`, `?`, and `*` re-enable it.
 Use **comma-n** to toggle the NERDTree file browser.
+Use **Ctrl-P** for CtrlP file navigation; its cache uses Neovim's cache directory.
 
 ## Enter Dev
 

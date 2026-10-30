@@ -5,7 +5,7 @@ neovim.override {
   withRuby = false;
   withNodeJs = false;
   configure = {
-    packages.devchain.start = [ vimPlugins.gruvbox vimPlugins.nerdtree ];
+    packages.devchain.start = [ vimPlugins.gruvbox vimPlugins.nerdtree vimPlugins.ctrlp-vim ];
     customRC = ''
       lua dofile("${../config/nvim/init.lua}")
     '';

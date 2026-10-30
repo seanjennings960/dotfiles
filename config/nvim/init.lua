@@ -23,6 +23,7 @@ vim.keymap.set("n", "*", ':let @/ = ""<CR>:call gruvbox#hls_show()<CR>*', { sile
 vim.keymap.set("n", "/", ":call gruvbox#hls_show()<CR>/", { silent = true })
 vim.keymap.set("n", "?", ":call gruvbox#hls_show()<CR>?", { silent = true })
 vim.keymap.set("n", "<leader>n", "<Cmd>NERDTreeToggle<CR>", { silent = true })
+vim.g.ctrlp_cache_dir = vim.fn.stdpath("cache") .. "/ctrlp"
 
 -- Packaged configuration is read-only; keep editing state in the user's state directory.
 local state = vim.fn.stdpath("state")
