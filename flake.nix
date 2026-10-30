@@ -46,11 +46,22 @@
             cp ${./config/opencode/skills/unslop/SKILL.md} "$out/share/opencode/skills/unslop/SKILL.md"
           '';
           default = dev;
+          toolset = pkgs.symlinkJoin {
+            name = "devchain-toolset";
+            paths = [
+              dev
+              tmux
+              nvim
+              zsh
+              opencode
+            ];
+          };
         }
       );
 
       checks = forAllSystems (system: {
         dev = self.packages.${system}.dev;
+        toolset = self.packages.${system}.toolset;
       });
 
       formatter = forAllSystems (

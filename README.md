@@ -76,14 +76,27 @@ Hatch manages an editable development environment and may download dependencies
 on first use outside the Nix build. The activation tests require Bash and Zsh;
 tests for unavailable shells are skipped.
 
-Run `nix flake check` to build the launcher and run its tests on the current
-platform. This check reuses the same package derivation as `nix build`.
+Run `nix flake check` to build the selected toolset and run the launcher's tests on
+the current platform. These checks reuse the package derivations.
 Run `nix fmt` from the repository root to format `flake.nix` and `nix/*.nix`
 with the pinned nixfmt. Explicit arguments are forwarded, for example
 `nix fmt -- --check flake.nix nix/*.nix`.
 
 The launcher supports local tmux sessions, workspace inspection, and command
 execution. Cross-environment entry and container rebuild are not implemented.
+
+### Combined toolset
+
+```sh
+nix shell .#toolset
+dev
+```
+
+The toolset bundles `dev`, configured tmux, Neovim, configured Zsh, and OpenCode.
+For persistent installation, use `nix profile add .#toolset`. Ghostty and OpenCode
+configuration artifacts are activated separately as described below.
+Use `nix develop` for work on this repository with Hatch; use `nix shell .#toolset`
+to bring the selected personal tools into your current workspace.
 
 ### Configured tmux
 
