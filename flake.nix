@@ -104,6 +104,8 @@
           default = pkgs.mkShellNoCC {
             name = "devchain";
             packages = [
+              pkgs.coreutils # GNU dd for writing images from the development shell.
+              pkgs.pv
               pkgs.python3
               pkgs.cowsay
               pkgs.lolcat
