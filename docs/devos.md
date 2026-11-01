@@ -34,7 +34,13 @@ VM-specific configurations, builder provisioning, and launch instructions live
 in the separate `~/code/dev/vm` repository. The first target is an ARM64 VM on
 macOS; the planned physical target is an x86_64 PC.
 
-The initial module has been evaluated against the pinned NixOS version. Boot,
-rendering, clipboard, and restart/persistence validation are tracked in the VM
-repository. Browser integration, installer media, and physical-machine support
+The ARM64 EFI disk image has built and booted into Ghostty/tmux on macOS QEMU.
+Automated serial-console checks verify graphical attachment, workspace tags,
+pane-process survival across a Cage restart, and workspace-file persistence
+across reboot. The VM repository tracks the remaining interactive clipboard,
+keyboard, and application-state checks.
+
+Linux builds run inside Lima. A dedicated artifact-copy script verifies and
+copies the self-contained image back to the Mac; host Nix trust settings remain
+unchanged. Browser integration, installer media, and physical-machine support
 follow the initial graphical boot milestone.
