@@ -19,7 +19,11 @@ dev = ["pytest==8.4.2", "pexpect==4.9.0"]
 packages = ["dotfiles_dev"]
 
 [tool.hatch.envs.default]
+installer = "pip"
 features = ["dev"]
+
+[tool.hatch.envs.hatch-build]
+installer = "pip"
 
 [tool.hatch.envs.default.scripts]
 test = "python -m pytest {args}"
