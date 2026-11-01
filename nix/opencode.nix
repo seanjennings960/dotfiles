@@ -17,6 +17,11 @@ let
       target = "linux-arm64";
       hash = "sha512-drw0LWMG0niaE94ePXm1h7qjFBZZRcSZD3gact3hx3OYPXesp7xrOt0bn3sicYNUN6fojERrDKR6jYrXmZX+rA==";
     };
+    x86_64-linux = {
+      # The baseline build also supports PCs without AVX2.
+      target = "linux-x64-baseline";
+      hash = "sha512-0/H4wRDAW4hA5IWN440XwDrRATbvT3cno+UUsqFynTu0TeGXNADjK2AZfvhNTfyJaVyCa+v7VhB+r7ghuMa5EQ==";
+    };
   };
   platform = platforms.${stdenv.hostPlatform.system};
 in

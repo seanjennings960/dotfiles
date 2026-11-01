@@ -1,5 +1,31 @@
 # DevOS
 
+## Bootable PC ISO
+
+The flake exposes `packages.x86_64-linux.devos-iso`, built from the pinned
+Devchain `toolset`: `dev`, configured tmux, Neovim, Zsh, and OpenCode. Ghostty
+and Cage provide the graphical entry point. These packages and their runtime
+dependencies are included in the image; boot does not install them.
+
+On x86_64 Linux:
+
+```sh
+nix build .#devos-iso
+ls -lh result/iso/devos-x86_64.iso
+```
+
+The ISO uses NixOS's live installation-media support, with UEFI and hybrid USB
+boot enabled. It opens the DevOS interface as `dev`; console credentials are
+`dev` / `dev`. The live session uses a RAM overlay. It includes NixOS's standard
+installation tools, but does not automatically install onto a disk. Secure Boot
+signing and hardware-specific installation configuration are not provided.
+
+On this ARM64 Mac, `~/code/dev/vm` owns Linux build emulation, ISO copying, and
+QEMU boot verification. The ISO definition itself lives in
+`nix/nixos/live-iso.nix`, so it can be built directly on a native Linux machine.
+
+## System interface
+
 DevOS packages this toolset as a NixOS single-app interface:
 
 ```text

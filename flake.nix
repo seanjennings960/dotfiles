@@ -9,11 +9,20 @@
       systems = [
         "aarch64-darwin"
         "aarch64-linux"
+        "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
       nixosModules.devos = import ./nix/nixos/devos.nix { inherit self; };
+
+      nixosConfigurations.devos-iso = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          self.nixosModules.devos
+          ./nix/nixos/live-iso.nix
+        ];
+      };
 
       packages = forAllSystems (
         system:
@@ -58,6 +67,9 @@
               opencode
             ];
           };
+        }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          devos-iso = self.nixosConfigurations.devos-iso.config.system.build.isoImage;
         }
       );
 

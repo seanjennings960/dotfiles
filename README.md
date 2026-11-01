@@ -41,7 +41,8 @@ nix develop
 The shell supplies Hatch, Python, OpenCode, cowsay, and lolcat. Interactive entry
 prints the experimental "Hello, Nix!" greeting; command execution stays quiet.
 The flake exposes outputs for Apple
-Silicon macOS (`aarch64-darwin`) and ARM64 Linux (`aarch64-linux`).
+Silicon macOS (`aarch64-darwin`), ARM64 Linux (`aarch64-linux`), and
+x86_64 Linux (`x86_64-linux`).
 `flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
 deliberately and commit the updated lockfile.
 
