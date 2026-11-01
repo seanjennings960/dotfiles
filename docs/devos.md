@@ -24,6 +24,13 @@ On this ARM64 Mac, `~/code/dev/vm` owns Linux build emulation, ISO copying, and
 QEMU boot verification. The ISO definition itself lives in
 `nix/nixos/live-iso.nix`, so it can be built directly on a native Linux machine.
 
+The first physical target is the ASUS M580VD-EB76 notebook. Published specs
+list an Intel Core i7-7700HQ and NVIDIA GTX 1050; Intel HD Graphics 630 is also
+integrated into that CPU. The initial ISO uses the standard Linux graphics and
+firmware stack. Actual GPU/display routing and Wi-Fi support need verification
+on the device. Use the UEFI USB boot entry with Secure Boot disabled for this
+unsigned image.
+
 ## System interface
 
 DevOS packages this toolset as a NixOS single-app interface:
