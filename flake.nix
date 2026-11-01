@@ -13,6 +13,8 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
+      nixosModules.devos = import ./nix/nixos/devos.nix { inherit self; };
+
       packages = forAllSystems (
         system:
         let
@@ -74,7 +76,7 @@
           runtimeInputs = [ pkgs.nixfmt ];
           text = ''
             if [ "$#" -eq 0 ]; then
-              set -- flake.nix nix/*.nix
+              set -- flake.nix nix/*.nix nix/nixos/*.nix
             fi
             exec nixfmt "$@"
           '';

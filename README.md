@@ -1,5 +1,7 @@
 # Devchain -- Custom Terminal Interface
 
+See [DevOS](docs/devos.md) for the NixOS single-app distribution and local VM work.
+
 `dev` is a tmux-based CLI designed to operate as a common operating environment
 between human and llm-based agents.
 
