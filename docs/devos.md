@@ -11,11 +11,15 @@ On x86_64 Linux:
 
 ```sh
 nix build .#devos-iso
-ls -lh result/iso/devos-x86_64.iso
+ls -lh result/iso/*.iso
 ```
 
 The ISO uses NixOS's live installation-media support, with UEFI and hybrid USB
-boot enabled. It opens the DevOS interface as `dev`; console credentials are
+boot enabled. The local artifact-copy workflow publishes it under the stable
+name `devos-x86_64.iso`; the pinned NixOS builder's own filename uses its
+release metadata.
+
+It opens the DevOS interface as `dev`; console credentials are
 `dev` / `dev`. The live session uses a RAM overlay. It includes NixOS's standard
 installation tools, but does not automatically install onto a disk. Secure Boot
 signing and hardware-specific installation configuration are not provided.
