@@ -14,16 +14,6 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
-      nixosModules.devos = import ./nix/nixos/devos.nix { inherit self; };
-
-      nixosConfigurations.devos-iso = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          self.nixosModules.devos
-          ./nix/nixos/live-iso.nix
-        ];
-      };
-
       packages = forAllSystems (
         system:
         let
@@ -68,9 +58,6 @@
             ];
           };
         }
-        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          devos-iso = self.nixosConfigurations.devos-iso.config.system.build.isoImage;
-        }
       );
 
       checks = forAllSystems (system: {
@@ -88,7 +75,7 @@
           runtimeInputs = [ pkgs.nixfmt ];
           text = ''
             if [ "$#" -eq 0 ]; then
-              set -- flake.nix nix/*.nix nix/nixos/*.nix
+              set -- flake.nix nix/*.nix
             fi
             exec nixfmt "$@"
           '';

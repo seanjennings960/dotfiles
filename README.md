@@ -1,6 +1,7 @@
 # Devchain -- Custom Terminal Interface
 
-See [DevOS](docs/devos.md) for the NixOS single-app distribution and local VM work.
+The separate `devos` repository owns the NixOS distribution, installation media,
+and VM workflows. This repository provides its developer tooling packages.
 
 `dev` is a tmux-based CLI designed to operate as a common operating environment
 between human and llm-based agents.
