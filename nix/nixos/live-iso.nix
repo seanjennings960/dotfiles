@@ -17,8 +17,7 @@
   image.fileName = "devos-x86_64.iso";
   boot.zfs.forceImportRoot = false;
 
-  # The installation profile defaults to wpa_supplicant; DevOS uses NM.
-  networking.wireless.enable = lib.mkForce false;
+  # NetworkManager enables and controls wpa_supplicant through D-Bus.
   services.getty.autologinUser = lib.mkForce "dev";
   boot.kernelParams = [
     "console=ttyS0,115200"
