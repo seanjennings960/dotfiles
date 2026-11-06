@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 
 import pytest
@@ -25,6 +26,9 @@ def activation(tmp_path):
 
 def run_shell(activation, shell, command):
     root, _, env = activation
+    # NixOS's global shell startup may add system paths. Restore the deliberately
+    # restricted fixture PATH after startup so missing-tool cases stay isolated.
+    command = f"export PATH={shlex.quote(env['PATH'])}\n{command}"
     return subprocess.run(
         [shell, "-c", command], cwd=root, env=env,
         text=True, capture_output=True, timeout=10,
@@ -36,13 +40,19 @@ def executable(path, body):
     path.chmod(0o755)
 
 
+def host_tool(name):
+    path = shutil.which(name)
+    assert path, f"Activation test fixtures require {name}"
+    return shlex.quote(path)
+
+
 def fake_python(path):
     executable(
         path,
         'if [ "$1" = -m ] && [ "$2" = venv ] && [ "$3" != --help ]; then\n'
-        '  /bin/mkdir -p "$3/bin"\n'
-        '  /bin/cp "$0" "$3/bin/python"\n'
-        '  /bin/cp "$0" "$3/bin/pip"\n'
+        f'  {host_tool("mkdir")} -p "$3/bin"\n'
+        f'  {host_tool("cp")} "$0" "$3/bin/python"\n'
+        f'  {host_tool("cp")} "$0" "$3/bin/pip"\n'
         'fi\nexit 0\n',
     )
 
@@ -57,8 +67,8 @@ def fake_uv(activation, path):
         '  printf "uv 0.13.1\\n"\n'
         'elif [ "$1" = python ] && [ "$2" = install ]; then\n'
         '  python_bin="$5/cpython-3.11.17-test/bin"\n'
-        '  /bin/mkdir -p "$python_bin"\n'
-        '  /bin/cp "$MOCK_PYTHON" "$python_bin/python3.11"\n'
+        f'  {host_tool("mkdir")} -p "$python_bin"\n'
+        f'  {host_tool("cp")} "$MOCK_PYTHON" "$python_bin/python3.11"\n'
         'elif [ "$1" = pip ] && [ "$MOCK_UV_FAIL_PIP" = 1 ]; then\n'
         '  exit 1\n'
         'fi\n',
@@ -199,10 +209,10 @@ def test_fresh_bootstrap_installs_uv_and_python(activation):
         '[ "$UV_VERSION" = 0.13.1 ] || exit 1\n'
         '[ "$UV_NO_MODIFY_PATH" = 1 ] || exit 1\n'
         '[ "$UV_NO_INSTALLER_METADATA" = 1 ] || exit 1\n'
-        '/bin/cp "$MOCK_UV" "$UV_INSTALL_DIR/uv"\n',
+        f'{host_tool("cp")} "$MOCK_UV" "$UV_INSTALL_DIR/uv"\n',
     )
     env["MOCK_UV_INSTALLER"] = str(installer)
-    executable(bin_dir / "curl", '/bin/cat "$MOCK_UV_INSTALLER"\n')
+    executable(bin_dir / "curl", f'{host_tool("cat")} "$MOCK_UV_INSTALLER"\n')
     for name in ("sh", "mkdir"):
         (bin_dir / name).symlink_to(shutil.which(name))
     result = run_shell(activation, ZSH, 'setopt ERR_EXIT; source ./activate.sh || exit 99')
