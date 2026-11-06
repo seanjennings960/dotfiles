@@ -31,6 +31,7 @@ stdenvNoCC.mkDerivation {
   ];
   nativeCheckInputs = [ git ];
   doCheck = true;
+  doInstallCheck = true;
 
   # Hatch/pip install Python dependencies from this fixed-hash wheel cache.
   PIP_NO_INDEX = "1";
@@ -63,7 +64,7 @@ stdenvNoCC.mkDerivation {
     "$out/libexec/dev/bin/python" -m pip install --no-compile dist/*.whl
     mkdir -p "$out/bin"
     makeWrapper "$out/libexec/dev/bin/dev" "$out/bin/dev" \
-      --prefix PATH : ${
+      --suffix PATH : ${
         lib.makeBinPath [
           git
           tmux
@@ -72,12 +73,27 @@ stdenvNoCC.mkDerivation {
     runHook postInstall
   '';
 
+  installCheckPhase = ''
+    runHook preInstallCheck
+    mkdir -p "$TMPDIR/project-bin"
+    for tool in git tmux; do
+      printf '#!%s\nprintf "project-%s\\n"\n' '${stdenvNoCC.shell}' "$tool" \
+        > "$TMPDIR/project-bin/$tool"
+      chmod +x "$TMPDIR/project-bin/$tool"
+      actual=$(PATH="$TMPDIR/project-bin:$PATH" DEV_ENVIRONMENT=host \
+        "$out/bin/dev" --workspace "$TMPDIR" exec "$tool")
+      test "$actual" = "project-$tool"
+    done
+    runHook postInstallCheck
+  '';
+
   meta = {
     description = "Workspace launcher with local tmux sessions";
     mainProgram = "dev";
     platforms = [
       "aarch64-darwin"
       "aarch64-linux"
+      "x86_64-linux"
     ];
   };
 }

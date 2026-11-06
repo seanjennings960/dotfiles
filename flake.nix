@@ -9,6 +9,7 @@
       systems = [
         "aarch64-darwin"
         "aarch64-linux"
+        "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
@@ -43,6 +44,7 @@
           opencode-config = pkgs.runCommand "devchain-opencode-config" { } ''
             mkdir -p "$out/share/opencode/skills/unslop"
             cp ${./config/opencode/opencode.jsonc} "$out/share/opencode/opencode.jsonc"
+            cp ${./config/opencode/cli.json} "$out/share/opencode/cli.json"
             cp ${./config/opencode/skills/unslop/SKILL.md} "$out/share/opencode/skills/unslop/SKILL.md"
           '';
           default = dev;

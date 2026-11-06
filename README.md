@@ -1,5 +1,8 @@
 # Devchain -- Custom Terminal Interface
 
+This repository packages developer tooling. The separate DevOS repository owns
+the NixOS distribution, installation media, and machine configuration.
+
 `dev` is a tmux-based CLI designed to operate as a common operating environment
 between human and llm-based agents.
 
@@ -39,7 +42,8 @@ nix develop
 The shell supplies Hatch, Python, OpenCode, cowsay, and lolcat. Interactive entry
 prints the experimental "Hello, Nix!" greeting; command execution stays quiet.
 The flake exposes outputs for Apple
-Silicon macOS (`aarch64-darwin`) and ARM64 Linux (`aarch64-linux`).
+Silicon macOS (`aarch64-darwin`), ARM64 Linux (`aarch64-linux`), and
+x86_64 Linux (`x86_64-linux`).
 `flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
 deliberately and commit the updated lockfile.
 
@@ -193,13 +197,18 @@ integrity hashes. It is separate from nixpkgs' older V1 package. Change the
 version and platform hashes in `nix/opencode.nix` to upgrade the Nix installation.
 
 `nix build .#opencode-config` produces `result/share/opencode/` with the tracked
-`opencode.jsonc` and `skills/unslop/SKILL.md`. Copy those files into
+`opencode.jsonc`, `cli.json`, and `skills/unslop/SKILL.md`. Copy those files into
 `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/`, merging with any existing settings.
 Make the copies user-writable. Keep the configuration directory itself writable
 rather than symlinking it to the Nix store, so OpenCode can manage dependency
 state there. The artifact contains no generated dependency files or local service
 settings. OpenCode V2 reloads configuration changes automatically; `/reload`
 forces a full reload.
+
+### Development-cycle consolidation
+
+See the [release review](docs/darwin-release.md) for the semantic diff groups,
+superseded PRs, and explicitly deferred next-sprint work.
 
 ## Enter Dev
 
