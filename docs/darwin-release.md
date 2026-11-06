@@ -24,6 +24,7 @@ systems, images and machine configuration.
 | ASUS x86_64 outputs and baseline OpenCode archive | Integrate alongside ARM64 Darwin/Linux outputs. |
 | Explicit Hatch/pip installer selection | Integrate the ASUS fix so sandboxed builds use the fixed-hash wheelhouse. |
 | Launcher fallback `PATH` | Correct the prefix regression from `d236047`: project Git/tmux must precede packaged fallbacks. Add an installed-wrapper check. |
+| Existing activation test fixtures | Resolve host tool paths rather than assuming `/bin/cp`, and restore the fixture PATH after shell startup, so the same suite runs on NixOS. No installer behavior changes. |
 | Ghostty/OpenCode configuration artifacts | Keep explicit manual activation. Include the reviewed shared `cli.json` with server config and the existing skill. |
 | Legacy home activation, shell/editor runtime features and deeper regressions | Do not revive the old installation layout; retain the relevant next-sprint PRs below. |
 | Dev Container Feature/bootstrap | Defer #47 as the successor to #41. |
@@ -122,6 +123,8 @@ No system activation, service restart or reboot was performed.
 - Native `nix develop --command hatch run test`: 17 passed, one opt-in tmux test
   skipped; rerun with `DOTFILES_TEST_TMUX` set to the built package: **18 passed**,
   including actual Ctrl-A/Ctrl-S input to an attached tmux client.
+- ASUS x86_64 full suite with the built tmux and offline Python wheelhouse:
+  **18 passed**, after correcting the existing activation fixture assumptions.
 - Built Ghostty/OpenCode artifacts and compared every emitted configuration file
   byte-for-byte with its tracked source.
 
