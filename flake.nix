@@ -25,7 +25,8 @@
             inherit resurrect;
             configuredZsh = zsh;
           };
-          nvim = pkgs.callPackage ./nix/neovim.nix { };
+          markdown-preview = pkgs.callPackage ./nix/markdown-preview.nix { };
+          nvim = pkgs.callPackage ./nix/neovim.nix { markdownPreview = markdown-preview; };
           opencode = pkgs.callPackage ./nix/opencode.nix { };
           dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse tmux; };
         in
@@ -36,6 +37,7 @@
             nvim
             zsh
             opencode
+            markdown-preview
             ;
           ghostty-config = pkgs.runCommand "devchain-ghostty-config" { } ''
             mkdir -p "$out/share/ghostty"
@@ -56,6 +58,7 @@
               nvim
               zsh
               opencode
+              markdown-preview
             ];
           };
         }
@@ -64,6 +67,10 @@
       checks = forAllSystems (system: {
         dev = self.packages.${system}.dev;
         toolset = self.packages.${system}.toolset;
+        markdown-preview = nixpkgs.legacyPackages.${system}.callPackage ./nix/markdown-preview-check.nix {
+          markdownPreview = self.packages.${system}.markdown-preview;
+          configuredNeovim = self.packages.${system}.nvim;
+        };
       });
 
       formatter = forAllSystems (

@@ -65,8 +65,9 @@ dependencies into the packaged environment using pip.
 Python dependencies are managed by Hatch/pip rather than nixpkgs' Python package
 set. `nix/wheels.json` records fixed-hash wheels for the build, test, and runtime
 dependencies, including the exact Click version from `pyproject.toml`. Nix fetches
-these wheels before the sandboxed build; Hatch/pip use that cache with package
-index access disabled. Update the wheel manifest when changing dependencies.
+these wheels before the build; Hatch/pip use that cache with package index access
+disabled. Build sandboxing depends on the local Nix policy; pinning is not runtime
+isolation. Update the wheel manifest when changing dependencies.
 
 For development, run these commands from the repository inside `nix develop`:
 
@@ -80,8 +81,8 @@ Hatch manages an editable development environment and may download dependencies
 on first use outside the Nix build. The activation tests require Bash and Zsh;
 tests for unavailable shells are skipped.
 
-Run `nix flake check` to build the selected toolset and run the launcher's tests on
-the current platform. These checks reuse the package derivations.
+Run `nix flake check` to build the selected toolset and run the launcher and
+Markdown preview checks on the current platform.
 Run `nix fmt` from the repository root to format `flake.nix` and `nix/*.nix`
 with the pinned nixfmt. Explicit arguments are forwarded, for example
 `nix fmt -- --check flake.nix nix/*.nix`.
@@ -96,7 +97,8 @@ nix shell .#toolset
 dev
 ```
 
-The toolset bundles `dev`, configured tmux, Neovim, configured Zsh, and OpenCode.
+The toolset bundles `dev`, configured tmux, Neovim, configured Zsh, OpenCode, and
+the OCaml-based `devchain-markdown` renderer.
 For persistent installation, use `nix profile add .#toolset`. Ghostty and OpenCode
 configuration artifacts are activated separately as described below.
 Use `nix develop` for work on this repository with Hatch; use `nix shell .#toolset`
@@ -156,10 +158,19 @@ Use **comma-u** for Undotree, replacing the old Gundo plugin. The package suppli
 `diff` for its diff pane; persistent undo history survives editor restarts.
 Better Whitespace highlights trailing whitespace. Use `:StripWhitespace` to
 remove it explicitly; saving does not automatically strip whitespace.
-In Markdown buffers, use `:MarkdownPreview`, `:MarkdownPreviewStop`, or
-`:MarkdownPreviewToggle`. The preview plugin, Node.js, and JavaScript dependencies
-are packaged by Nix; no `mkdp#util#install()` step is needed. Preview opens in your
-system browser and requires a graphical browser session for normal use.
+In Markdown buffers, `:MarkdownPreview` renders the current (including unsaved)
+buffer with Cmarkit, the OCaml CommonMark parser from the locked nixpkgs 26.05
+input. It opens a private static HTML snapshot in your system browser, with no
+HTTP/WebSocket server, Node.js, or preview JavaScript bundle. Raw HTML is omitted;
+scripts and automatic resource loads (including images) are blocked by the page's
+content policy. Links can still navigate when clicked.
+
+Run `:MarkdownPreview` again to refresh. `:MarkdownPreviewStop` deletes the
+snapshot; `:MarkdownPreviewToggle` switches between generating and deleting it.
+Neither command closes an already-open browser tab. Snapshots are also deleted
+when their buffer is wiped or the editor exits normally. There is no live reload
+or synchronized scrolling. See [Markdown preview](docs/markdown-preview.md) for
+provenance, verification limits, and the standalone renderer.
 
 ALE provides Python diagnostics through Ruff. It prefers project virtualenv
 executables; Ruff is also supplied as a fallback on `PATH`. Project Ruff settings
@@ -292,19 +303,14 @@ This install script does the following things:
 * Link .* (dotfiles) on your computer to this directory
 * Initialize and update git submodules for pathogen plugins
 
-### Markdown preview in Vim
+### Markdown preview in legacy Vim
 
-Pathogen loads `config/vim/bundle/markdown-preview.nvim`. After initializing the
-submodules, open Vim and install the plugin's prebuilt preview server once:
-
-```vim
-:call mkdp#util#install()
-```
-
-In a Markdown buffer, run `:MarkdownPreview` to open the preview in your browser.
-Use `:MarkdownPreviewStop` to close it or `:MarkdownPreviewToggle` to toggle it.
-The plugin requires Vim 8.1 or newer, or Neovim. Run the install command again
-after updating the plugin to refresh the preview server.
+The old `markdown-preview.nvim` submodule is no longer shipped. Existing clones
+may still have an initialized copy; it is not made safe by updating this flake.
+Do not run its preview server. Use the packaged Neovim commands above, or render
+explicitly with `nix run .#markdown-preview < document.md > preview.html` and open
+the resulting file yourself. User-created output files need appropriate private
+permissions and manual deletion.
 
 ## Managing Git submodules
 

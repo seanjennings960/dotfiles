@@ -4,6 +4,7 @@
   vimPlugins,
   diffutils,
   ruff,
+  markdownPreview,
 }:
 
 neovim.override {
@@ -23,11 +24,12 @@ neovim.override {
       vimPlugins.ctrlp-vim
       vimPlugins.undotree
       vimPlugins.vim-better-whitespace
-      vimPlugins.markdown-preview-nvim
       vimPlugins.ale
     ];
     customRC = ''
       lua dofile("${../config/nvim/init.lua}")
+      lua vim.g.devchain_markdown_renderer = "${markdownPreview}/bin/devchain-markdown"
+      lua dofile("${../config/nvim/markdown-preview.lua}")
     '';
   };
 }

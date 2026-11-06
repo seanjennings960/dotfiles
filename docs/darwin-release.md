@@ -10,7 +10,9 @@ shared CLI preferences were committed separately and copied into the release.
 Both remotes were fetched: `origin`, and
 `asus` (`dev@asus:/home/dev/workspaces/devchain`). ASUS's `dotfile_os` branch ends
 at `e615e5a`. Its packaging is in `flake.nix`; there is no separate `flake.part`
-file or flake-parts conversion in either source.
+file or flake-parts conversion in either source. The later `flake.part` reference
+was a website reference, not a source file; the reachable framework documentation
+is at <https://flake.parts>. This release retains its existing flake structure.
 
 The net reusable packaging changes from `origin/dotfile_os` at `0c3f9b1` are
 integrated without importing historical NixOS/ISO commits. DevOS owns operating
@@ -26,6 +28,7 @@ systems, images and machine configuration.
 | Launcher fallback `PATH` | Correct the prefix regression from `d236047`: project Git/tmux must precede packaged fallbacks. Add an installed-wrapper check. |
 | Existing activation test fixtures | Resolve host tool paths rather than assuming `/bin/cp`, and restore the fixture PATH after shell startup, so the same suite runs on NixOS. No installer behavior changes. |
 | Ghostty/OpenCode configuration artifacts | Keep explicit manual activation. Include the reviewed shared `cli.json` with server config and the existing skill. |
+| Markdown preview replacement | Replace the Node/Socket.IO preview with a static OCaml/Cmarkit renderer from the existing nixpkgs pin, private snapshot files and offline regression checks. Remove the legacy preview submodule; see [verification limits](markdown-preview.md). |
 | Legacy home activation, shell/editor runtime features and deeper regressions | Do not revive the old installation layout; retain the relevant next-sprint PRs below. |
 | Dev Container Feature/bootstrap | Defer #47 as the successor to #41. |
 | Inspection/window-management additions in #43 | Preserve unique code and acceptance expectations in #55, related to #3/#19. |
@@ -130,3 +133,16 @@ No system activation, service restart or reboot was performed.
 
 ARM64 Linux is evaluation-only. Desktop clipboard delivery and graphical browser
 rendering are not claimed by these checks.
+
+### After the Markdown preview replacement
+
+- `nix flake check` passes on native Apple Silicon macOS and ASUS x86_64 Linux,
+  including **11** offline preview/editor/closure regression checks.
+- The complete suite, with packaged renderer/editor/tmux and closure metadata,
+  passes **29 tests on each platform** with no skips.
+- The editor runtime closure contains neither the old preview plugin nor Node.js.
+- Cmarkit's downloaded source archive matches nixpkgs' fixed SHA-256 hash;
+  `flake.lock` is unchanged. This is tested/source-integrity verification, not
+  a formal proof of parser correctness or security.
+- ARM64 Linux outputs still evaluate; browser launch and rendering remain
+  outside the offline tests. No system activation or penetration testing occurred.
