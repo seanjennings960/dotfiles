@@ -9,7 +9,7 @@ stdenv.mkDerivation {
     runHook preBuild
     $CC -Wall -Wextra -Werror -fobjc-arc ${./microphone.m} -o microphone \
       -Wl,-sectcreate,__TEXT,__info_plist,${./microphone.plist} \
-      -framework Foundation -framework AVFoundation
+      -framework Foundation -framework AVFoundation -framework AudioToolbox -framework CoreAudio
     runHook postBuild
   '';
 
@@ -20,7 +20,7 @@ stdenv.mkDerivation {
   '';
 
   meta = {
-    description = "Record the default macOS microphone as 16 kHz mono PCM WAV";
+    description = "Discover and record macOS microphones as 16 kHz mono PCM WAV";
     mainProgram = "microphone";
     platforms = lib.platforms.darwin;
   };
