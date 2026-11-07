@@ -18,17 +18,17 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          wheelhouse = pkgs.callPackage ./nix/wheelhouse.nix { };
-          resurrect = pkgs.callPackage ./nix/resurrect.nix { };
-          zsh = pkgs.callPackage ./nix/zsh.nix { };
-          tmux = pkgs.callPackage ./nix/tmux.nix {
+          wheelhouse = pkgs.callPackage ./pkgs/wheelhouse.nix { };
+          resurrect = pkgs.callPackage ./pkgs/resurrect.nix { };
+          zsh = pkgs.callPackage ./pkgs/zsh.nix { };
+          tmux = pkgs.callPackage ./pkgs/tmux.nix {
             inherit resurrect;
             configuredZsh = zsh;
           };
-          markdown-preview = pkgs.callPackage ./nix/markdown-preview.nix { };
-          nvim = pkgs.callPackage ./nix/neovim.nix { markdownPreview = markdown-preview; };
-          opencode = pkgs.callPackage ./nix/opencode.nix { };
-          dev = pkgs.callPackage ./nix/package.nix { inherit wheelhouse tmux; };
+          markdown-preview = pkgs.callPackage ./pkgs/markdown-preview.nix { };
+          nvim = pkgs.callPackage ./pkgs/neovim.nix { markdownPreview = markdown-preview; };
+          opencode = pkgs.callPackage ./pkgs/opencode.nix { };
+          dev = pkgs.callPackage ./modules/package.nix { inherit wheelhouse tmux; };
         in
         {
           inherit
@@ -67,7 +67,7 @@
       checks = forAllSystems (system: {
         dev = self.packages.${system}.dev;
         toolset = self.packages.${system}.toolset;
-        markdown-preview = nixpkgs.legacyPackages.${system}.callPackage ./nix/markdown-preview-check.nix {
+        markdown-preview = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/markdown-preview-check.nix {
           markdownPreview = self.packages.${system}.markdown-preview;
           configuredNeovim = self.packages.${system}.nvim;
         };
@@ -83,7 +83,7 @@
           runtimeInputs = [ pkgs.nixfmt ];
           text = ''
             if [ "$#" -eq 0 ]; then
-              set -- flake.nix nix/*.nix
+              set -- flake.nix pkgs/*.nix modules/*.nix
             fi
             exec nixfmt "$@"
           '';
