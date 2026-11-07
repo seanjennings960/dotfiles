@@ -1,0 +1,5 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/var/nix/profiles/default/bin/nix-build /Users/sean/code/dev/dotfiles/formal/toolchain.nix -A ocaml --no-out-link
+/nix/store/mfjm894flhap4am8if8yh3ajz1fmwppl-ocaml-5.4.1
+
+exit status: 0

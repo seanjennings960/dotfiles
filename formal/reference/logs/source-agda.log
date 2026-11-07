@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/hazelgrove/agda-popl17",
+  "revision": "db3d21a1e3f17ef77ad557ed12374979f381b6b7",
+  "url": "https://github.com/hazelgrove/agda-popl17/archive/db3d21a1e3f17ef77ad557ed12374979f381b6b7.tar.gz",
+  "sha256": "41226098105f1baa456b1640de9ebce15712e86727fc055f53881c5ad4d9ba67",
+  "directory": "agda-popl17-db3d21a1e3f17ef77ad557ed12374979f381b6b7"
+}
+verified archive sha256: 41226098105f1baa456b1640de9ebce15712e86727fc055f53881c5ad4d9ba67
+extracted: /Users/sean/code/dev/dotfiles/formal/reference/work/agda-5sqfxi6z

@@ -1,0 +1,5 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/var/nix/profiles/default/bin/nix-build /Users/sean/code/dev/dotfiles/formal/toolchain.nix -A isabelle --no-out-link
+/nix/store/18ygg3r4ji4h5m91cci80b6g897b1b40-isabelle-2025-2
+
+exit status: 0

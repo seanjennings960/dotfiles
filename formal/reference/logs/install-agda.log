@@ -1,0 +1,5 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/var/nix/profiles/default/bin/nix-build /Users/sean/code/dev/dotfiles/formal/toolchain.nix -A agda --no-out-link
+/nix/store/p5l1g0qvm8bc96x03dgskakipfd6c2z0-agdaWithPackages-2.8.0
+
+exit status: 0

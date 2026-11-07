@@ -1,0 +1,15 @@
+cwd: /Users/sean/code/dev/dotfiles/formal/reference/work/ocaml-xu87jq2d/HZ-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090/src
+command: /Users/sean/code/dev/dotfiles/formal/reference/work/ocaml-xu87jq2d/HZ-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090/src/hz_checks smoke
+PASS empty hole synthesizes a type hole
+PASS ascribed identity synthesizes num -> num
+PASS edit result synthesizes its reported type
+PASS edit result synthesizes its reported type
+PASS edit result synthesizes its reported type
+PASS edit result synthesizes its reported type
+PASS construct 1 + 2 from an empty hole
+PASS movement preserves erasure
+PASS inconsistent construction creates a non-empty hole
+PASS finish rejects the incompatible enclosed literal
+PASS delete resets synthesis to an empty hole
+
+exit status: 0

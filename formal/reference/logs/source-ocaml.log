@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/hazelgrove/HZ",
+  "revision": "2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090",
+  "url": "https://github.com/hazelgrove/HZ/archive/2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090.tar.gz",
+  "sha256": "071925896f0aae5c52ae37f28b74b3011ae05620ae609d93f77af6db8102f6ab",
+  "directory": "HZ-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090"
+}
+verified archive sha256: 071925896f0aae5c52ae37f28b74b3011ae05620ae609d93f77af6db8102f6ab
+extracted: /Users/sean/code/dev/dotfiles/formal/reference/work/ocaml-xu87jq2d

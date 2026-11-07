@@ -1,0 +1,7 @@
+cwd: /Users/sean/code/dev/dotfiles/formal/reference/work/ocaml-xu87jq2d/HZ-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090/src
+command: /Users/sean/code/dev/dotfiles/formal/reference/work/ocaml-xu87jq2d/HZ-2ec8a4ce37a3c1f6f6cacb2fc3a2421ae3126090/src/hz_checks audit
+arrow false positive: paper=false upstream=true FAIL
+arrow false negative: paper=true upstream=false FAIL
+sum false positive: paper=false upstream=true FAIL
+
+exit status: 1

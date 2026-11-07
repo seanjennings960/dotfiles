@@ -1,0 +1,6 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/store/18ygg3r4ji4h5m91cci80b6g897b1b40-isabelle-2025-2/bin/isabelle version
+environment overrides: {"HOME": "/Users/sean/code/dev/dotfiles/formal/reference/home", "USER_HOME": "/Users/sean/code/dev/dotfiles/formal/reference/home", "TMPDIR": "/Users/sean/code/dev/dotfiles/formal/reference/tmp"}
+Isabelle2025-2
+
+exit status: 0

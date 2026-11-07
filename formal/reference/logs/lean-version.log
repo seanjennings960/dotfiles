@@ -1,0 +1,5 @@
+cwd: /Users/sean/code/dev/dotfiles/formal
+command: /nix/store/jcaahg1daq98ihbjqmmwnl07wl5p4lfa-lean4-4.29.1/bin/lean --version
+Lean (version 4.29.1, arm64-apple-darwin, commit v4.29.1, Release)
+
+exit status: 0

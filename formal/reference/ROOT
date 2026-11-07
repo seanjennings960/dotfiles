@@ -1,0 +1,3 @@
+session EvalSTLC_Reference = HOL +
+  options [document = false]
+  theories EvalSTLC
