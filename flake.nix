@@ -29,6 +29,7 @@
           nvim = pkgs.callPackage ./pkgs/neovim.nix { markdownPreview = markdown-preview; };
           opencode = pkgs.callPackage ./pkgs/opencode.nix { };
           dev = pkgs.callPackage ./modules/package.nix { inherit wheelhouse tmux; };
+          microphone = pkgs.callPackage ./modules/devices/microphone.nix { };
         in
         {
           inherit
@@ -62,6 +63,9 @@
             ];
           };
         }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+          inherit microphone;
+        }
       );
 
       checks = forAllSystems (system: {
@@ -83,7 +87,7 @@
           runtimeInputs = [ pkgs.nixfmt ];
           text = ''
             if [ "$#" -eq 0 ]; then
-              set -- flake.nix pkgs/*.nix modules/*.nix
+              set -- flake.nix pkgs/*.nix modules/*.nix modules/devices/*.nix
             fi
             exec nixfmt "$@"
           '';
