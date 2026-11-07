@@ -180,6 +180,21 @@ def test_paste_permission_denial_stops_before_recording(monkeypatch):
     assert calls == [["/test/paste", "--authorize"]]
 
 
+def test_native_paste_into_focused_input(tmp_path):
+    helper = os.environ.get("DOTFILES_TEST_PASTE")
+    if sys.platform != "darwin" or not helper:
+        pytest.skip("Set DOTFILES_TEST_PASTE to ptt-paste for the interactive macOS GUI test")
+    fixture = tmp_path / "paste-smoke"
+    subprocess.run([
+        "/usr/bin/clang", "-Wall", "-Wextra", "-Werror", "-Wno-deprecated-declarations",
+        "-fobjc-arc", str(Path(__file__).with_name("paste_smoke.m")),
+        "-o", str(fixture), "-framework", "AppKit",
+    ], check=True, timeout=60)
+    # Repetition catches event-delivery races from short-lived native helpers.
+    for _ in range(3):
+        subprocess.run([str(fixture), helper], check=True, timeout=10)
+
+
 def test_short_tap_is_not_transcribed(make_controller):
     controller, stdout, _ = make_controller(duration=0.05)
     controller.press()

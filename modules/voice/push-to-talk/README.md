@@ -115,5 +115,15 @@ the automated tests do not bypass macOS permissions or record ambient audio.
 
 Verified on the host M3 MacBook Air: native Nix build, process-level tests,
 permission checks, and packaged Whisper transcription of generated speech.
-Focused-input paste is covered by process-level tests; end-to-end GUI delivery
-still requires Accessibility approval and an interactive check.
+Focused-input paste was verified against a real focused macOS text view, including
+Unicode and no trailing Enter. The optional GUI regression test opens a temporary
+test window three times, then restores the clipboard and previous focused app:
+
+```sh
+DOTFILES_TEST_PASTE="$(nix build --no-link --print-out-paths .#push-to-talk)/libexec/ptt-paste" \
+  hatch run test tests/test_push_to_talk.py -k native_paste
+```
+
+This test requires an interactive macOS session and Accessibility approval; it is
+skipped by default and in sandboxed Nix checks. Verify the target app separately,
+as some apps intercept or disable normal paste shortcuts.

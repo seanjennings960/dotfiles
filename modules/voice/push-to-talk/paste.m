@@ -55,7 +55,11 @@ int main(int argc, const char *argv[]) {
             CGEventSetFlags(down, kCGEventFlagMaskCommand);
             CGEventSetFlags(up, kCGEventFlagMaskCommand);
             CGEventPost(kCGHIDEventTap, down);
+            [NSThread sleepForTimeInterval:0.02];
             CGEventPost(kCGHIDEventTap, up);
+            // Posting is asynchronous. Keep the sender alive while macOS dispatches
+            // the events; exiting immediately can cause them to be dropped.
+            [NSThread sleepForTimeInterval:0.2];
         } else {
             fprintf(stderr, "push-to-talk: cannot write transcript to the clipboard\n");
         }
