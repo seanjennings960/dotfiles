@@ -63,7 +63,7 @@ and runs the launcher tests through Hatch, then installs the wheel and its
 dependencies into the packaged environment using pip.
 
 Python dependencies are managed by Hatch/pip rather than nixpkgs' Python package
-set. `nix/wheels.json` records fixed-hash wheels for the build, test, and runtime
+set. `pkgs/wheels.json` records fixed-hash wheels for the build, test, and runtime
 dependencies, including the exact Click version from `pyproject.toml`. Nix fetches
 these wheels before the build; Hatch/pip use that cache with package index access
 disabled. Build sandboxing depends on the local Nix policy; pinning is not runtime
@@ -83,9 +83,9 @@ tests for unavailable shells are skipped.
 
 Run `nix flake check` to build the selected toolset and run the launcher and
 Markdown preview checks on the current platform.
-Run `nix fmt` from the repository root to format `flake.nix` and `nix/*.nix`
+Run `nix fmt` from the repository root to format the flake, packages, and modules
 with the pinned nixfmt. Explicit arguments are forwarded, for example
-`nix fmt -- --check flake.nix nix/*.nix`.
+`nix fmt -- --check flake.nix pkgs/*.nix`.
 
 The launcher supports local tmux sessions, workspace inspection, and command
 execution. Cross-environment entry and container rebuild are not implemented.
@@ -103,6 +103,16 @@ For persistent installation, use `nix profile add .#toolset`. Ghostty and OpenCo
 configuration artifacts are activated separately as described below.
 Use `nix develop` for work on this repository with Hatch; use `nix shell .#toolset`
 to bring the selected personal tools into your current workspace.
+
+### Push to talk (macOS)
+
+Run `nix run .#push-to-talk` and hold **Caps Lock** to record; release to print
+the local Whisper transcription to stdout. The macOS toolset includes this
+command. Add `--paste` to also paste into the focused input (requires Accessibility
+permission and replaces the clipboard). First use requires Microphone and Input
+Monitoring permission for your terminal. See the
+[push-to-talk guide](modules/voice/push-to-talk/README.md) for
+hotkey choices, permissions, transcription configuration, and host testing.
 
 ### Configured tmux
 
@@ -205,7 +215,7 @@ Reload Ghostty's configuration after activation.
 Run `nix run .#opencode -- --version` or use `opencode` inside `nix develop`.
 The package pins OpenCode V2 **2.1.4** using official platform archives and their
 integrity hashes. It is separate from nixpkgs' older V1 package. Change the
-version and platform hashes in `nix/opencode.nix` to upgrade the Nix installation.
+version and platform hashes in `pkgs/opencode.nix` to upgrade the Nix installation.
 
 `nix build .#opencode-config` produces `result/share/opencode/` with the tracked
 `opencode.jsonc`, `cli.json`, and `skills/unslop/SKILL.md`. Copy those files into
