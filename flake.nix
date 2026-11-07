@@ -29,6 +29,7 @@
           nvim = pkgs.callPackage ./pkgs/neovim.nix { markdownPreview = markdown-preview; };
           opencode = pkgs.callPackage ./pkgs/opencode.nix { };
           dev = pkgs.callPackage ./modules/package.nix { inherit wheelhouse tmux; };
+          transcribe = pkgs.callPackage ./pkgs/transcribe.nix { };
           microphone = pkgs.callPackage ./modules/devices/microphone.nix { };
         in
         {
@@ -39,6 +40,7 @@
             zsh
             opencode
             markdown-preview
+            transcribe
             ;
           ghostty-config = pkgs.runCommand "devchain-ghostty-config" { } ''
             mkdir -p "$out/share/ghostty"
