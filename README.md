@@ -1,5 +1,8 @@
 # Devchain -- Custom Terminal Interface
 
+This repository packages developer tooling. The separate DevOS repository owns
+the NixOS distribution, installation media, and machine configuration.
+
 `dev` is a tmux-based CLI designed to operate as a common operating environment
 between human and llm-based agents.
 
@@ -26,6 +29,197 @@ A more robust installation mechanism is planned. (Although, I guess the
 current setup is not too far off the `curl` oneliner which is so common
 between modern-day installations. I guess a platform-aware Bash script
 is about as universal as it gets. TODO: productionize installation)
+
+## Nix
+
+With Nix installed and the `nix-command` and `flakes` experimental features
+enabled, enter the development shell from this repository:
+
+```sh
+nix develop
+```
+
+The shell supplies Hatch, Python, OpenCode, cowsay, and lolcat. Interactive entry
+prints the experimental "Hello, Nix!" greeting; command execution stays quiet.
+The flake exposes outputs for Apple
+Silicon macOS (`aarch64-darwin`), ARM64 Linux (`aarch64-linux`), and
+x86_64 Linux (`x86_64-linux`).
+`flake.lock` pins nixpkgs; use `nix flake update nixpkgs` to update that pin
+deliberately and commit the updated lockfile.
+
+Build or run the packaged `dev` launcher:
+
+```sh
+nix build
+./result/bin/dev env
+nix run . -- --help
+nix run . -- env
+```
+
+To install it into your Nix profile, run `nix profile add .#dev`.
+The package supplies its own Python environment, with Git and tmux as fallbacks
+on `PATH` so project tools retain precedence. Nix invokes `hatch build -t wheel`
+and runs the launcher tests through Hatch, then installs the wheel and its
+dependencies into the packaged environment using pip.
+
+Python dependencies are managed by Hatch/pip rather than nixpkgs' Python package
+set. `nix/wheels.json` records fixed-hash wheels for the build, test, and runtime
+dependencies, including the exact Click version from `pyproject.toml`. Nix fetches
+these wheels before the build; Hatch/pip use that cache with package index access
+disabled. Build sandboxing depends on the local Nix policy; pinning is not runtime
+isolation. Update the wheel manifest when changing dependencies.
+
+For development, run these commands from the repository inside `nix develop`:
+
+```sh
+hatch build
+hatch run dev env
+hatch run test
+```
+
+Hatch manages an editable development environment and may download dependencies
+on first use outside the Nix build. The activation tests require Bash and Zsh;
+tests for unavailable shells are skipped.
+
+Run `nix flake check` to build the selected toolset and run the launcher and
+Markdown preview checks on the current platform.
+Run `nix fmt` from the repository root to format `flake.nix` and `nix/*.nix`
+with the pinned nixfmt. Explicit arguments are forwarded, for example
+`nix fmt -- --check flake.nix nix/*.nix`.
+
+The launcher supports local tmux sessions, workspace inspection, and command
+execution. Cross-environment entry and container rebuild are not implemented.
+
+### Combined toolset
+
+```sh
+nix shell .#toolset
+dev
+```
+
+The toolset bundles `dev`, configured tmux, Neovim, configured Zsh, OpenCode, and
+the OCaml-based `devchain-markdown` renderer.
+For persistent installation, use `nix profile add .#toolset`. Ghostty and OpenCode
+configuration artifacts are activated separately as described below.
+Use `nix develop` for work on this repository with Hatch; use `nix shell .#toolset`
+to bring the selected personal tools into your current workspace.
+
+### Configured tmux
+
+```sh
+nix run .#tmux -- -L devchain
+```
+
+This package loads `config/tmux.conf` with Ctrl-A prefix, Vim-style navigation,
+and pane-directory inheritance. Configured Zsh is the default shell, and the
+reload binding uses the packaged configuration's Nix store path.
+Clipboard copying uses `pbcopy` on macOS, `wl-copy` on Wayland, or `xclip` on X11.
+OSC 52 clipboard support is also enabled; delivery depends on terminal support
+and settings.
+
+The packaged launcher uses this tmux as its fallback. An existing `tmux` earlier
+on `PATH` still takes precedence; use `nix shell .#dev .#tmux` to select both
+packaged tools explicitly. Configuration loads when a tmux server starts, so
+use a fresh socket name when trying changes. Home-directory configuration files
+are not installed by this package.
+
+The configured package also includes tmux-resurrect, pinned through nixpkgs:
+
+See the [tmux usage and recovery guide](config/tmux/README.md) for startup,
+save/restore instructions, and troubleshooting.
+
+- **Ctrl-A, Ctrl-S** saves sessions, windows, panes, and supported programs.
+- **Ctrl-A, Ctrl-R** restores the latest snapshot.
+- Snapshots are stored in `~/.tmux/resurrect`, outside the Nix store.
+
+Restoration recreates layouts and supported commands, not running process memory.
+The launcher's custom workspace/environment session tags are not saved by
+tmux-resurrect, so `dev` may create a new session after restoration; you can attach
+to restored sessions directly with tmux. Saving and restoring are manual.
+
+### Configured Neovim
+
+Run `nix run .#nvim -- <file>` or enter `nix shell .#nvim` to use the configured
+editor. Its packaged startup is `config/nvim/init.lua`; it loads directly from
+the Nix store rather than installing configuration into your home directory.
+
+The baseline uses comma leader, four-space indentation, line numbers,
+smart-case/incremental search, autoread, and mouse support. YAML and Markdown use
+two-space indentation. Native EditorConfig support remains enabled for project
+settings. Persistent undo, swap, and backup files live under Neovim's
+`stdpath("state")` (normally `$XDG_STATE_HOME/nvim` or `~/.local/state/nvim`).
+
+Plugins are supplied by the pinned nixpkgs revision; startup does not download
+plugins. Gruvbox uses dark mode with hard contrast. F4 toggles search highlighting,
+Enter hides it, and `/`, `?`, and `*` re-enable it.
+Use **comma-n** to toggle the NERDTree file browser.
+Use **Ctrl-P** for CtrlP file navigation; its cache uses Neovim's cache directory.
+Use **comma-u** for Undotree, replacing the old Gundo plugin. The package supplies
+`diff` for its diff pane; persistent undo history survives editor restarts.
+Better Whitespace highlights trailing whitespace. Use `:StripWhitespace` to
+remove it explicitly; saving does not automatically strip whitespace.
+In Markdown buffers, `:MarkdownPreview` renders the current (including unsaved)
+buffer with Cmarkit, the OCaml CommonMark parser from the locked nixpkgs 26.05
+input. It opens a private static HTML snapshot in your system browser, with no
+HTTP/WebSocket server, Node.js, or preview JavaScript bundle. Raw HTML is omitted;
+scripts and automatic resource loads (including images) are blocked by the page's
+content policy. Links can still navigate when clicked.
+
+Run `:MarkdownPreview` again to refresh. `:MarkdownPreviewStop` deletes the
+snapshot; `:MarkdownPreviewToggle` switches between generating and deleting it.
+Neither command closes an already-open browser tab. Snapshots are also deleted
+when their buffer is wiped or the editor exits normally. There is no live reload
+or synchronized scrolling. See [Markdown preview](docs/markdown-preview.md) for
+provenance, verification limits, and the standalone renderer.
+
+ALE provides Python diagnostics through Ruff. It prefers project virtualenv
+executables; Ruff is also supplied as a fallback on `PATH`. Project Ruff settings
+remain authoritative. Other linters and automatic fixing on save are disabled.
+Use `:ALEInfo` to inspect the selected executable, command, and diagnostic output.
+
+### Configured Zsh
+
+Run `nix run .#zsh` for the configured shell. New panes in the packaged tmux use
+it automatically. It provides native completion, a Git-aware prompt, persistent
+history, autosuggestions, and Vi-style command-line editing. Escape enters normal
+mode; Ctrl-R searches history in insert mode.
+
+`config/zsh/zshrc` is loaded through a packaged `ZDOTDIR`, rather than sourcing
+your home-directory Zsh startup files. History lives under
+`$XDG_STATE_HOME/devchain/zsh` (default `~/.local/state/devchain/zsh`) and completion
+data under `$XDG_CACHE_HOME/devchain/zsh` (default `~/.cache/devchain/zsh`). Project
+executables retain precedence on `PATH`. Shell startup does not install tools or
+download plugins.
+
+### Ghostty configuration artifact
+
+`nix build .#ghostty-config` produces
+`result/share/ghostty/config.ghostty`, containing the tracked green-gray
+background (`#1b2920`). Add a `config-file` entry pointing to that file's absolute
+path in your existing Ghostty configuration, or copy the file into your Ghostty
+configuration directory. The artifact does not install Ghostty or activate itself.
+Reload Ghostty's configuration after activation.
+
+### OpenCode
+
+Run `nix run .#opencode -- --version` or use `opencode` inside `nix develop`.
+The package pins OpenCode V2 **2.1.4** using official platform archives and their
+integrity hashes. It is separate from nixpkgs' older V1 package. Change the
+version and platform hashes in `nix/opencode.nix` to upgrade the Nix installation.
+
+`nix build .#opencode-config` produces `result/share/opencode/` with the tracked
+`opencode.jsonc`, `cli.json`, and `skills/unslop/SKILL.md`. Copy those files into
+`${XDG_CONFIG_HOME:-$HOME/.config}/opencode/`, merging with any existing settings.
+Make the copies user-writable. Keep the configuration directory itself writable
+rather than symlinking it to the Nix store, so OpenCode can manage dependency
+state there. The artifact contains no generated dependency files or local service
+settings. OpenCode V2 reloads configuration changes automatically; `/reload`
+forces a full reload.
+
+### Development-cycle consolidation
+
+See the [release review](docs/darwin-release.md) for the semantic diff groups,
+superseded PRs, and explicitly deferred next-sprint work.
 
 ## Enter Dev
 
@@ -109,19 +303,14 @@ This install script does the following things:
 * Link .* (dotfiles) on your computer to this directory
 * Initialize and update git submodules for pathogen plugins
 
-### Markdown preview in Vim
+### Markdown preview in legacy Vim
 
-Pathogen loads `config/vim/bundle/markdown-preview.nvim`. After initializing the
-submodules, open Vim and install the plugin's prebuilt preview server once:
-
-```vim
-:call mkdp#util#install()
-```
-
-In a Markdown buffer, run `:MarkdownPreview` to open the preview in your browser.
-Use `:MarkdownPreviewStop` to close it or `:MarkdownPreviewToggle` to toggle it.
-The plugin requires Vim 8.1 or newer, or Neovim. Run the install command again
-after updating the plugin to refresh the preview server.
+The old `markdown-preview.nvim` submodule is no longer shipped. Existing clones
+may still have an initialized copy; it is not made safe by updating this flake.
+Do not run its preview server. Use the packaged Neovim commands above, or render
+explicitly with `nix run .#markdown-preview < document.md > preview.html` and open
+the resulting file yourself. User-created output files need appropriate private
+permissions and manual deletion.
 
 ## Managing Git submodules
 
