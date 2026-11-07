@@ -27,11 +27,12 @@ def terminate(process):
 
 
 class PushToTalk:
-    def __init__(self, directory, microphone, transcriber, stdout=None, stderr=None, device=None):
+    def __init__(self, directory, microphone, transcriber, stdout=None, stderr=None, device=None, paste=None):
         self.directory = Path(directory)
         self.microphone = microphone
         self.transcriber = transcriber
         self.device = device
+        self.paste = paste
         self.stdout = stdout if stdout is not None else sys.stdout
         self.stderr = stderr if stderr is not None else sys.stderr
         self.recording = None
@@ -98,6 +99,14 @@ class PushToTalk:
             text = " ".join(result.stdout.split())
             if text:
                 print(text, file=self.stdout, flush=True)
+                if self.paste is not None:
+                    try:
+                        subprocess.run(
+                            [self.paste], input=text, text=True, check=True, timeout=10,
+                            stdout=subprocess.DEVNULL, stderr=self.stderr, start_new_session=True,
+                        )
+                    except (OSError, subprocess.SubprocessError) as error:
+                        self.log(f"paste failed (transcript preserved on stdout): {error}")
         except (OSError, subprocess.SubprocessError) as error:
             self.log(f"transcription failed: {error}")
         finally:
@@ -121,6 +130,7 @@ def main():
     parser.add_argument("--key", choices=KEYS, default="caps-lock")
     parser.add_argument("--microphone", help="microphone UID or exact name (default: macOS default input)")
     parser.add_argument("--list-microphones", action="store_true", help="discover microphone UIDs and names without recording")
+    parser.add_argument("--paste", action="store_true", help="also paste into the focused input (replaces clipboard; requires Accessibility)")
     parser.add_argument(
         "--transcriber", default="transcribe",
         help="command (no shell); the recorded WAV path is appended",
@@ -132,12 +142,14 @@ def main():
         parser.error("--transcriber must not be empty")
     microphone = os.environ.get("PUSH_TO_TALK_MICROPHONE", "microphone")
     hotkey = os.environ.get("PUSH_TO_TALK_HOTKEY", "ptt-hotkey")
+    paste = os.environ.get("PUSH_TO_TALK_PASTE", "ptt-paste") if args.paste else None
     if args.list_microphones:
         return subprocess.run([microphone, "--list"], check=False).returncode
     if args.check:
         mic = subprocess.run([microphone, "--check"], check=False).returncode
         key = subprocess.run([hotkey, "--check"], check=False).returncode
-        return int(bool(mic or key))
+        accessibility = subprocess.run([paste, "--check"], check=False).returncode if paste else 0
+        return int(bool(mic or key or accessibility))
 
     def interrupted(number, frame):
         raise KeyboardInterrupt
@@ -146,8 +158,10 @@ def main():
     events = None
     status = 0
     with tempfile.TemporaryDirectory(prefix="push-to-talk-") as directory:
-        ptt = PushToTalk(directory, microphone, transcriber, device=args.microphone)
+        ptt = PushToTalk(directory, microphone, transcriber, device=args.microphone, paste=paste)
         try:
+            if paste is not None:
+                subprocess.run([paste, "--authorize"], check=True)
             subprocess.run([microphone, "--authorize"], check=True)
             events = subprocess.Popen(
                 [hotkey, str(KEYS[args.key])], stdout=subprocess.PIPE,

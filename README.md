@@ -108,8 +108,10 @@ to bring the selected personal tools into your current workspace.
 
 Run `nix run .#push-to-talk` and hold **Caps Lock** to record; release to print
 the local Whisper transcription to stdout. The macOS toolset includes this
-command. First use requires Microphone and Input Monitoring permission for your
-terminal. See the [push-to-talk guide](modules/voice/push-to-talk/README.md) for
+command. Add `--paste` to also paste into the focused input (requires Accessibility
+permission and replaces the clipboard). First use requires Microphone and Input
+Monitoring permission for your terminal. See the
+[push-to-talk guide](modules/voice/push-to-talk/README.md) for
 hotkey choices, permissions, transcription configuration, and host testing.
 
 ### Configured tmux

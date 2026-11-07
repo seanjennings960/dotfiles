@@ -24,7 +24,7 @@ spec.loader.exec_module(ptt)
 def make_controller(tmp_path):
     controllers = []
 
-    def make(*, duration=0.3, microphone_source=None, transcriber_source=None, device=None):
+    def make(*, duration=0.3, microphone_source=None, transcriber_source=None, device=None, paste=False, paste_source=None):
         # Spaces in both executables and audio paths must survive without a shell.
         directory = tmp_path / f"utterances {len(controllers)}"
         directory.mkdir()
@@ -64,9 +64,19 @@ print('  hello from the microphone.  \\n  Another sentence. ')
         stdout = io.StringIO()
         # Popen needs a real stderr file descriptor.
         stderr = (directory / "stderr").open("w+")
+        paste_command = None
+        if paste:
+            helper = directory / "fake paste"
+            helper.write_text(f"#!{sys.executable}\n" + (paste_source or f"""
+from pathlib import Path
+import sys
+Path({str(directory / 'pasted.txt')!r}).write_text(sys.stdin.read())
+"""))
+            helper.chmod(0o755)
+            paste_command = str(helper)
         controller = ptt.PushToTalk(
             directory, str(microphone), [sys.executable, str(transcriber), "--plain"],
-            stdout=stdout, stderr=stderr, device=device,
+            stdout=stdout, stderr=stderr, device=device, paste=paste_command,
         )
         controllers.append((controller, stderr))
         return controller, stdout, stderr
@@ -99,6 +109,75 @@ def test_hold_release_transcribes_and_removes_audio(make_controller):
     assert stdout.getvalue() == "hello from the microphone. Another sentence.\n"
     assert "recording" in errors(stderr)
     assert not path.exists()
+    assert not (controller.directory / "pasted.txt").exists()
+
+
+def test_paste_receives_plain_unicode_text_without_enter(make_controller):
+    text = 'Café 🦊 says "hello"; $(this is not a shell command).'
+    controller, stdout, _ = make_controller(
+        paste=True, transcriber_source=f"print({text!r})\n",
+    )
+    controller.press()
+    controller.release()
+    controller.close()
+    assert stdout.getvalue() == text + "\n"
+    assert (controller.directory / "pasted.txt").read_text() == text
+
+
+@pytest.mark.parametrize("source", ["print('   ')\n", "raise SystemExit(1)\n"])
+def test_empty_or_failed_transcript_is_not_pasted(make_controller, source):
+    controller, stdout, _ = make_controller(paste=True, transcriber_source=source)
+    controller.press()
+    controller.release()
+    controller.close()
+    assert stdout.getvalue() == ""
+    assert not (controller.directory / "pasted.txt").exists()
+
+
+def test_paste_failure_preserves_stdout_and_cleans_audio(make_controller):
+    controller, stdout, stderr = make_controller(paste=True, paste_source="raise SystemExit(9)\n")
+    controller.press()
+    _, path = controller.recording
+    controller.release()
+    controller.close()
+    assert stdout.getvalue() == "hello from the microphone. Another sentence.\n"
+    assert "paste failed (transcript preserved on stdout)" in errors(stderr)
+    assert not path.exists()
+
+
+@pytest.mark.parametrize("paste", [False, True])
+def test_accessibility_is_checked_only_when_paste_enabled(monkeypatch, paste):
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, int(command[0] == "/test/paste"))
+
+    monkeypatch.setattr(sys, "argv", ["push-to-talk", "--check", *(["--paste"] if paste else [])])
+    monkeypatch.setenv("PUSH_TO_TALK_MICROPHONE", "/test/microphone")
+    monkeypatch.setenv("PUSH_TO_TALK_HOTKEY", "/test/hotkey")
+    monkeypatch.setenv("PUSH_TO_TALK_PASTE", "/test/paste")
+    monkeypatch.setattr(ptt.subprocess, "run", run)
+    assert ptt.main() == int(paste)
+    assert calls == [
+        ["/test/microphone", "--check"], ["/test/hotkey", "--check"],
+        *([["/test/paste", "--check"]] if paste else []),
+    ]
+
+
+def test_paste_permission_denial_stops_before_recording(monkeypatch):
+    calls = []
+
+    def denied(command, **kwargs):
+        calls.append(command)
+        raise subprocess.CalledProcessError(1, command)
+
+    monkeypatch.setattr(sys, "argv", ["push-to-talk", "--paste"])
+    monkeypatch.setenv("PUSH_TO_TALK_PASTE", "/test/paste")
+    monkeypatch.setattr(ptt.subprocess, "run", denied)
+    monkeypatch.setattr(ptt.signal, "signal", lambda *args: None)
+    assert ptt.main() == 1
+    assert calls == [["/test/paste", "--authorize"]]
 
 
 def test_short_tap_is_not_transcribed(make_controller):

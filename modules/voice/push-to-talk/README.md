@@ -7,7 +7,8 @@ nix run .#push-to-talk | tee transcript.txt
 
 Hold **Caps Lock** to record the default microphone; release it to transcribe.
 One utterance per line goes to stdout, flushed immediately. Status and errors go
-to stderr. Nothing is pasted, typed into another app, or uploaded. Ctrl-C stops
+to stderr. By default nothing is pasted or typed into another app. Audio is not
+uploaded by the packaged transcriber. Ctrl-C stops
 the listener, discards an unreleased recording, and finishes pending transcripts.
 Recordings are private temporary files, deleted after transcription or shutdown.
 Each recording and transcription is limited to 120 seconds.
@@ -28,12 +29,31 @@ Discovery does not record or request microphone/keyboard permissions. Without
 process, not the system default. If names are duplicated, use the UID. A missing
 selected input is rejected instead of silently using another microphone.
 
+## Paste into the focused input
+
+```sh
+nix run .#push-to-talk -- --paste --microphone 'Scarlett 2i2 USB'
+```
+
+`--paste` also copies each completed transcript to the clipboard and sends
+**Cmd-V** to whichever app/input has focus **when transcription finishes**.
+Focus the intended input before releasing the hotkey and leave it focused until
+the text appears. No Enter/Return is sent and stdout is still available. Apps
+that do not accept normal Cmd-V pastes may not support this feature.
+
+This replaces your clipboard contents; it does not restore the old clipboard.
+Enable **Ghostty** (or your terminal) in **System Settings > Privacy & Security >
+Accessibility**, then quit and reopen it. `--paste` requests this extra permission
+on startup and fails before recording if it has not been granted. Check without
+prompting using `nix run .#push-to-talk -- --paste --check`.
+
 ## Permissions and hotkeys
 
 On first use, grant your terminal **Microphone** and **Input Monitoring** access
 in **System Settings > Privacy & Security**, then quit and reopen the terminal.
-`--check` only inspects permissions; it does not request them. No Accessibility
-permission, root privileges, background service, or login item is needed.
+`--check` only inspects permissions; it does not request them. Accessibility
+permission is needed only with `--paste`. No root privileges, background service,
+or login item is needed.
 
 The hotkey observes physical HID press/release events globally, even when another
 app has focus. It does not grab the keyboard or change macOS key mappings.
@@ -95,5 +115,5 @@ the automated tests do not bypass macOS permissions or record ambient audio.
 
 Verified on the host M3 MacBook Air: native Nix build, process-level tests,
 permission checks, and packaged Whisper transcription of generated speech.
-Live microphone/key testing remains pending Microphone and Input Monitoring
-approval (`--check` reports both as ungranted).
+Focused-input paste is covered by process-level tests; end-to-end GUI delivery
+still requires Accessibility approval and an interactive check.
