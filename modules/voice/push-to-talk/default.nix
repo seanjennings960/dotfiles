@@ -14,6 +14,7 @@ stdenv.mkDerivation {
     root = ./.;
     fileset = lib.fileset.unions [
       ./hotkey.m
+      ./paste.m
       ./push_to_talk.py
     ];
   };
@@ -25,6 +26,8 @@ stdenv.mkDerivation {
     runHook preBuild
     $CC -Wall -Wextra -Werror -fobjc-arc hotkey.m -o ptt-hotkey \
       -framework Foundation -framework IOKit
+    $CC -Wall -Wextra -Werror -fobjc-arc paste.m -o ptt-paste \
+      -framework AppKit -framework ApplicationServices
     runHook postBuild
   '';
 
@@ -38,11 +41,13 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
     install -Dm755 ptt-hotkey "$out/libexec/ptt-hotkey"
+    install -Dm755 ptt-paste "$out/libexec/ptt-paste"
     install -Dm644 push_to_talk.py "$out/libexec/push_to_talk.py"
     makeWrapper ${python3.interpreter} "$out/bin/push-to-talk" \
       --add-flags "$out/libexec/push_to_talk.py" \
       --set PUSH_TO_TALK_HOTKEY "$out/libexec/ptt-hotkey" \
       --set PUSH_TO_TALK_MICROPHONE "${microphone}/bin/microphone" \
+      --set PUSH_TO_TALK_PASTE "$out/libexec/ptt-paste" \
       --prefix PATH : ${lib.makeBinPath [ transcribe ]}
     runHook postInstall
   '';
