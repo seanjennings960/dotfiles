@@ -24,7 +24,7 @@ spec.loader.exec_module(ptt)
 def make_controller(tmp_path):
     controllers = []
 
-    def make(*, duration=0.3, microphone_source=None, transcriber_source=None):
+    def make(*, duration=0.3, microphone_source=None, transcriber_source=None, device=None):
         # Spaces in both executables and audio paths must survive without a shell.
         directory = tmp_path / f"utterances {len(controllers)}"
         directory.mkdir()
@@ -41,7 +41,8 @@ def stop(number, frame):
     stopped = True
 signal.signal(signal.SIGINT, stop)
 signal.signal(signal.SIGTERM, stop)
-with wave.open(sys.argv[1], 'wb') as audio:
+assert sys.argv[1:-1] == {(['--device', device] if device is not None else [])!r}
+with wave.open(sys.argv[-1], 'wb') as audio:
     audio.setnchannels(1)
     audio.setsampwidth(2)
     audio.setframerate(16000)
@@ -65,7 +66,7 @@ print('  hello from the microphone.  \\n  Another sentence. ')
         stderr = (directory / "stderr").open("w+")
         controller = ptt.PushToTalk(
             directory, str(microphone), [sys.executable, str(transcriber), "--plain"],
-            stdout=stdout, stderr=stderr,
+            stdout=stdout, stderr=stderr, device=device,
         )
         controllers.append((controller, stderr))
         return controller, stdout, stderr
@@ -108,6 +109,29 @@ def test_short_tap_is_not_transcribed(make_controller):
     controller.close()
     assert stdout.getvalue() == ""
     assert not path.exists()
+
+
+@pytest.mark.parametrize("device", ["USB Audio Microphone", "BuiltInMicrophoneDevice"])
+def test_selected_microphone_is_passed_as_one_argument(make_controller, device):
+    controller, stdout, _ = make_controller(device=device)
+    controller.press()
+    controller.release()
+    controller.close()
+    assert stdout.getvalue() == "hello from the microphone. Another sentence.\n"
+
+
+def test_microphone_discovery_does_not_request_permissions(monkeypatch):
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(sys, "argv", ["push-to-talk", "--list-microphones"])
+    monkeypatch.setenv("PUSH_TO_TALK_MICROPHONE", "/test/microphone")
+    monkeypatch.setattr(ptt.subprocess, "run", run)
+    assert ptt.main() == 0
+    assert calls == [["/test/microphone", "--list"]]
 
 
 def test_shutdown_discards_unreleased_recording(make_controller):

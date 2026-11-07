@@ -12,6 +12,24 @@ the listener, discards an unreleased recording, and finishes pending transcripts
 Recordings are private temporary files, deleted after transcription or shutdown.
 Each recording and transcription is limited to 120 seconds.
 
+## Select a microphone
+
+Discover available inputs, then select one by its UID or exact name:
+
+```sh
+nix run .#push-to-talk -- --list-microphones
+nix run .#push-to-talk -- --microphone 'MacBook Air Microphone'
+# Or use the stable UID printed in the first column:
+nix run .#push-to-talk -- --microphone 'BuiltInMicrophoneDevice'
+```
+
+Discovery does not record or request microphone/keyboard permissions. Without
+`--microphone`, the macOS default input is used. Selection affects only this
+process, not the system default. If names are duplicated, use the UID. A missing
+selected input is rejected instead of silently using another microphone.
+
+## Permissions and hotkeys
+
 On first use, grant your terminal **Microphone** and **Input Monitoring** access
 in **System Settings > Privacy & Security**, then quit and reopen the terminal.
 `--check` only inspects permissions; it does not request them. No Accessibility
@@ -49,11 +67,13 @@ The WAV filename is appended as one argument; no shell is evaluated. The command
 must write only transcript text to stdout, diagnostics to stderr, and exit nonzero
 on failure. A failed utterance is reported and removed, not retried.
 
-`modules/devices/microphone.nix` packages a reusable native AVFoundation recorder:
+`modules/devices/microphone.nix` packages a reusable native Core Audio recorder:
 
 ```sh
 nix run .#microphone -- recording.wav
 # Ctrl-C finalizes 16 kHz, mono, signed 16-bit PCM WAV.
+nix run .#microphone -- --list
+nix run .#microphone -- --device 'MacBook Air Microphone' recording.wav
 ```
 
 It emits `READY` on stdout only once capture starts; SIGINT/SIGTERM stops and

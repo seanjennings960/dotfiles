@@ -27,10 +27,11 @@ def terminate(process):
 
 
 class PushToTalk:
-    def __init__(self, directory, microphone, transcriber, stdout=None, stderr=None):
+    def __init__(self, directory, microphone, transcriber, stdout=None, stderr=None, device=None):
         self.directory = Path(directory)
         self.microphone = microphone
         self.transcriber = transcriber
+        self.device = device
         self.stdout = stdout if stdout is not None else sys.stdout
         self.stderr = stderr if stderr is not None else sys.stderr
         self.recording = None
@@ -46,8 +47,11 @@ class PushToTalk:
             return
         self.sequence += 1
         path = self.directory / f"{self.sequence}.wav"
+        command = [self.microphone]
+        if self.device is not None:
+            command.extend(["--device", self.device])
         process = subprocess.Popen(
-            [self.microphone, str(path)], stdout=subprocess.PIPE,
+            [*command, str(path)], stdout=subprocess.PIPE,
             stderr=self.stderr, text=True, start_new_session=True,
         )
         self.recording = process, path
@@ -115,6 +119,8 @@ class PushToTalk:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--key", choices=KEYS, default="caps-lock")
+    parser.add_argument("--microphone", help="microphone UID or exact name (default: macOS default input)")
+    parser.add_argument("--list-microphones", action="store_true", help="discover microphone UIDs and names without recording")
     parser.add_argument(
         "--transcriber", default="transcribe",
         help="command (no shell); the recorded WAV path is appended",
@@ -126,6 +132,8 @@ def main():
         parser.error("--transcriber must not be empty")
     microphone = os.environ.get("PUSH_TO_TALK_MICROPHONE", "microphone")
     hotkey = os.environ.get("PUSH_TO_TALK_HOTKEY", "ptt-hotkey")
+    if args.list_microphones:
+        return subprocess.run([microphone, "--list"], check=False).returncode
     if args.check:
         mic = subprocess.run([microphone, "--check"], check=False).returncode
         key = subprocess.run([hotkey, "--check"], check=False).returncode
@@ -138,7 +146,7 @@ def main():
     events = None
     status = 0
     with tempfile.TemporaryDirectory(prefix="push-to-talk-") as directory:
-        ptt = PushToTalk(directory, microphone, transcriber)
+        ptt = PushToTalk(directory, microphone, transcriber, device=args.microphone)
         try:
             subprocess.run([microphone, "--authorize"], check=True)
             events = subprocess.Popen(
