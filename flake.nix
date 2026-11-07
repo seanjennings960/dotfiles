@@ -31,6 +31,9 @@
           dev = pkgs.callPackage ./modules/package.nix { inherit wheelhouse tmux; };
           transcribe = pkgs.callPackage ./pkgs/transcribe.nix { };
           microphone = pkgs.callPackage ./modules/devices/microphone.nix { };
+          push-to-talk = pkgs.callPackage ./modules/voice/push-to-talk {
+            inherit microphone transcribe;
+          };
         in
         {
           inherit
@@ -62,22 +65,29 @@
               zsh
               opencode
               markdown-preview
-            ];
+            ]
+            ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ push-to-talk ];
           };
         }
         // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-          inherit microphone;
+          inherit microphone push-to-talk;
         }
       );
 
-      checks = forAllSystems (system: {
-        dev = self.packages.${system}.dev;
-        toolset = self.packages.${system}.toolset;
-        markdown-preview = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/markdown-preview-check.nix {
-          markdownPreview = self.packages.${system}.markdown-preview;
-          configuredNeovim = self.packages.${system}.nvim;
-        };
-      });
+      checks = forAllSystems (
+        system:
+        {
+          dev = self.packages.${system}.dev;
+          toolset = self.packages.${system}.toolset;
+          markdown-preview = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/markdown-preview-check.nix {
+            markdownPreview = self.packages.${system}.markdown-preview;
+            configuredNeovim = self.packages.${system}.nvim;
+          };
+        }
+        // nixpkgs.lib.optionalAttrs (nixpkgs.lib.hasSuffix "-darwin" system) {
+          push-to-talk = self.packages.${system}.push-to-talk;
+        }
+      );
 
       formatter = forAllSystems (
         system:
@@ -89,7 +99,7 @@
           runtimeInputs = [ pkgs.nixfmt ];
           text = ''
             if [ "$#" -eq 0 ]; then
-              set -- flake.nix pkgs/*.nix modules/*.nix modules/devices/*.nix
+              set -- flake.nix pkgs/*.nix modules/*.nix modules/devices/*.nix modules/voice/push-to-talk/*.nix
             fi
             exec nixfmt "$@"
           '';

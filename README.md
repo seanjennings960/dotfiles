@@ -104,6 +104,14 @@ configuration artifacts are activated separately as described below.
 Use `nix develop` for work on this repository with Hatch; use `nix shell .#toolset`
 to bring the selected personal tools into your current workspace.
 
+### Push to talk (macOS)
+
+Run `nix run .#push-to-talk` and hold **Caps Lock** to record; release to print
+the local Whisper transcription to stdout. The macOS toolset includes this
+command. First use requires Microphone and Input Monitoring permission for your
+terminal. See the [push-to-talk guide](modules/voice/push-to-talk/README.md) for
+hotkey choices, permissions, transcription configuration, and host testing.
+
 ### Configured tmux
 
 ```sh
